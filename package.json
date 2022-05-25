@@ -1,0 +1,38 @@
+{
+  "name": "faraon",
+  "version": "0.0.1",
+  "description": "Faraon is Sfinx client",
+  "productName": "Faraon",
+  "author": "Rus <rus@sfinx.in>",
+  "private": true,
+  "scripts": {
+    "dev": "quasar dev"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.14.0",
+    "pbkdf2": "^3.1.2",
+    "pinia": "^2.0.14",
+    "plotly.js": "^2.12.1",
+    "quasar": "^2.7.1",
+    "tiny-emitter": "^2.1.0",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
+    "uuid": "^8.3.2",
+    "vue": "^3.2.36",
+    "vue-resize-directive": "^1.2.0",
+    "vue-router": "^4.0.15"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^1.0.1",
+    "autoprefixer": "^10.4.7",
+    "postcss": "^8.4.14",
+    "rollup": "^2.74.1",
+    "unocss": "^0.34.1",
+    "vite": "^2.9.9"
+  },
+  "engines": {
+    "node": "^18 || ^16 || ^14.19",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}

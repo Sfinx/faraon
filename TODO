@@ -1,0 +1,9 @@
+
+misc:
+
+ - add div zoom by scroll/pan event
+ - make plotly transistion mor smooth for back move (preload the parent for current root slice)
+ - add buttons over plotly div (or use plotly ones)
+ - add slices search
+ - add voice search (read the book)
+ - add slice remove alerts

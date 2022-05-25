@@ -1,0 +1,25 @@
+// app global css in SCSS form
+// body {
+//   background-color: #0F0;
+// }
+
+.q-page {
+ background-image: url(/logo.png);
+ background-repeat: no-repeat;
+ background-position: center;
+ background-size: cover;
+}
+
+$back-color: #e8c61a;
+
+.q-dialog-plugin {
+  background-color: $back-color;
+}
+
+body.body--light {
+  background: $back-color;
+}
+
+.q-drawer {
+  background-color: $back-color;
+}
