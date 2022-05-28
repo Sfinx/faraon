@@ -1,7 +1,9 @@
+
 <template>
   <div :id="id" v-resize:debounce.100="onResize" />
 </template>
 <script>
+
 import Plotly from 'plotly.js/dist/plotly.js'
 import events from './events'
 import methods from './methods'
@@ -25,7 +27,7 @@ const def_options = {
 }
 
 export default {
-  name: 'plotly',
+  name: 'Plotly',
   inheritAttrs: false,
   directives,
   props: {

@@ -10,7 +10,7 @@ bson:
 	
 d dev:	bson
 	@ncu -u
-	@yarn install
+	@yarn
 	@quasar upgrade -i
 	@quasar dev
 

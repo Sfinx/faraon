@@ -9,6 +9,7 @@ const storeObj = {
  capturing: false,
  settings: {},
  total_slices: 0,
+ total_documents: 0,
  movingSlice: null
 }
 

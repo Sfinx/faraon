@@ -127,7 +127,8 @@ watch(loginDlg, (loginDlg, prevLoginDlg) => {
    window.removeEventListener('keydown', keyDown)
 })
 
-const logInfo = computed(() => $q.$store.loggedUser ? ('Logged as ' + $q.$store.loggedUser.footer + ' to sfinx://' + sfinxHost.value +' [Total ' + $q.$store.total_slices + ' slices, 123 documents]') : 'Not logged in')
+const logInfo = computed(() => $q.$store.loggedUser ? ('Logged as ' + $q.$store.loggedUser.footer + ' to sfinx://' + sfinxHost.value +' [Total ' + $q.$store.total_slices + ' slices, '
+  + $q.$store.total_documents + ' documents]') : 'Not logged in')
 
 const keyDown = e => {
   debugKey.value = e.key

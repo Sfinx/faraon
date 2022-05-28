@@ -36,10 +36,12 @@ const eventsName = [
       completeName: 'plotly_' + eventName,
       handler: context => (...args) => {
         // console.log('****** event:', eventName)
+        // console.dir(context)
+        if (context.select && (eventName == 'sunburstclick'))
+          return context.select(args[0])
         if (eventName == 'sunburstclick' && context.options.onClick)
           return context.options.onClick(args[0])
-        else
-          context.$emit.apply(context, [eventName, ...args])
+        context.$emit.apply(context, [eventName, ...args])
       }
     }))
 
