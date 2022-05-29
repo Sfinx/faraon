@@ -1,6 +1,7 @@
 
- - show documents in slice
  - add documents browser
+	- filters
+ - show documents in slice description
  - documents CRUD
 	- notes
 	- persons
@@ -11,3 +12,4 @@ misc:
  - add slices & documents search
  - add voice search (read the book)
  - add div zoom by scroll/pan event
+

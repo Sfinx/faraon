@@ -11,7 +11,6 @@
   "dependencies": {
     "@quasar/extras": "^1.14.0",
     "pbkdf2": "^3.1.2",
-    "pinia": "^2.0.14",
     "plotly.js": "^2.12.1",
     "quasar": "^2.7.1",
     "tiny-emitter": "^2.1.0",

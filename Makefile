@@ -9,7 +9,7 @@ bson:
 	}" > build.json
 	
 d dev:	bson
-	@ncu -u
+	@#ncu -u
 	@yarn
 	@quasar upgrade -i
 	@quasar dev
