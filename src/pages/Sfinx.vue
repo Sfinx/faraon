@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex flex-center">
+  <q-page class="flex flex-center" style="user-select: none;">
     <q-resize-observer @resize="onResize" />
     <div @dblclick="plotlyDoubleClick" @contextmenu="rightClick">
       <q-menu
@@ -25,14 +25,17 @@
                   <q-item clickable v-close-popup @click="newEditNote()">
                     <q-item-section>Add Note</q-item-section>
                   </q-item>
-                  <q-item clickable v-close-popup>
+                  <q-item :disabled="1" clickable v-close-popup>
+                    <q-item-section>Add File</q-item-section>
+                  </q-item>
+                  <q-item :disabled="1" clickable v-close-popup>
+                    <q-item-section>Add Event</q-item-section>
+                  </q-item>
+                  <q-item :disabled="1" clickable v-close-popup>
                     <q-item-section>Add Person</q-item-section>
                   </q-item>
-                  <q-item clickable v-close-popup>
+                  <q-item :disabled="1" clickable v-close-popup>
                     <q-item-section>Add Know How</q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup>
-                    <q-item-section>Add File</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -60,6 +63,55 @@
       <plotly v-if="plotlyData?.length > 0" :key="plotlyRedraw" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" @click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
     </div>
 
+    <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 30%;">
+      <q-card class="q-dialog-plugin" style="user-select: none; height: 100%; min-width: 95%;">
+        <q-toolbar class="bg-primary glossy text-white">
+          <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
+        </q-toolbar>
+        <q-input dense outlined label-color="black" label="Search" style="height: 6%" class="q-ma-sm"/>
+        <!-- <q-card-section style="height: 100%;"> -->
+          <q-table
+            dense
+            class="sticky-header-table"
+            style="height: 76%;"
+            ref="documentsTable"
+            :rows="documentRows"
+            :columns="documentColumns"
+            selection="multiple"
+            :selected="documentsSelected"
+            @selection="onDocumentSelection"
+            :selected-rows-label="getDocumentSelectedString"
+            :rows-per-page-options="[0]"
+            row-key="id"
+            @row-click="selectDocument"
+            @row-dblclick="viewDocument"
+          >
+            <template v-slot:body-cell-type="props" >
+              <q-td class="text-left">
+                <!-- <q-icon name="xyz" class="q-mr-md"/> -->
+                <q-badge
+                  class="q-ml-xs"
+                  style="height: 25px"
+                  color="green"
+                  :label="getDocumentType(props.value)"
+                ></q-badge>
+              </q-td>
+            </template>
+          </q-table>
+        <!-- </q-card-section> -->
+        <q-card-actions align="between">
+          <div>
+            <q-btn class="dense bg-secondary text-white" glossy label="Filter" /> <!-- by slices / by type / orphans only -->
+          </div>
+          <div class="q-gutter-sm">
+            <q-btn class="dense bg-red text-white" glossy label="Delete" />
+            <q-btn class="dense bg-secondary text-white" glossy label="Edit" />
+            <q-btn class="dense bg-secondary text-white" glossy label="New" /> <!-- make as menubutton -->
+          </div>
+        </q-card-actions>
+      </q-card>
+    </div>
+
     <q-dialog v-model="showSliceSelectionDialog" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none; min-width: 43%;">
         <q-toolbar class="bg-primary glossy text-white">
@@ -83,8 +135,7 @@
         </q-toolbar>
         <q-card-section class="col items-center">
           <form>
-          <q-input v-model="note.name" outlined label-color="black" label="Note Name" ref="noteName" @keydown.enter.prevent="noteURL.focus()" class="q-mb-sm"/>
-          <q-input v-model="note.url" outlined label-color="black" label="Note URL" ref="noteURL" @keydown.enter.prevent="noteDescription.focus()" class="q-mb-sm"/>
+          <q-input v-model="note.name" outlined label-color="black" label="Note Name" ref="noteName" @keydown.enter.prevent="noteDescription.focus()" class="q-mb-sm"/>
           <q-editor
             class="q-mb-sm"
             v-model="note.description"
@@ -241,18 +292,118 @@ import logger from '@/logger'
 import plotly from 'components/Plotly.vue'
 import selectSlice from 'components/SelectSlice.vue'
 import emitter from 'tiny-emitter/instance'
+import { format } from 'fecha'
 
 const $q = useQuasar()
+
+const documentColumns = [
+  { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
+  { name: 'name', align: 'center', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
+      if (v.length > 10)
+        return v.substring(0, 10) + '..'
+      return v
+    }
+  },
+  { name: 'description', align: 'center', label: 'Description', field: 'description', sortable: true, format: (v, r) => {
+      if (v.length > 10)
+        return v.substring(0, 10) + '..'
+      return v
+    }
+  },
+  { name: 'ctime', align: 'center', label: 'Stamp', field: 'ctime', sortable: true, format: (val, row) => {
+      let d = new Date(val * 1000)
+      return format(d, 'DD/MM/YY hh:mm:ss')
+      // return d.toLocaleString('uk', { timeStyle: "long", dateStyle: 'short' })
+    }
+  }
+]
+const documentsTitle = ref(null)
+const documentsTable = ref(null)
+const documentsSelected = ref([])
+const documentlastIndex = ref(null)
+
+const documentPresent = (row) => {
+  for (let [idx, r] of documentsSelected.value?.entries()) {
+    if (r.id == row.id)
+      return idx
+  }
+  return -1
+}
+const selectDocument = (evt, row, index) => {
+  const selectedIndex = documentPresent(row)
+  if (documentPresent(row) > -1)
+    documentsSelected.value = documentsSelected.value.slice(0, selectedIndex).concat(documentsSelected.value.slice(selectedIndex + 1))
+  else
+    documentsSelected.value = documentsSelected.value.concat(row)
+}
+
+const viewDocument = (evt, row, index) => {
+  console.log('viewDocument', row)
+}
+
+const getDocumentType = (v) => {
+  return v.at(0).toUpperCase()
+}
+const getDocumentSelectedString = () => documentsSelected.value.length === 0 ? '' : `${documentsSelected.value.length} record${documentsSelected.value.length > 1 ? 's' : ''} selected of ${documentRows.value.length}`
+
+// TODO: bug with ctrl deselection
+
+const onDocumentSelection = ({ rows, added, evt }) => {
+
+  if (rows.length === 0 || documentsTable.value === void 0)
+   return
+
+  const row = rows[0]
+  const filteredSortedRows = documentsTable.value.filteredSortedRows
+  const rowIndex = filteredSortedRows.indexOf(row) // documentPresent(row) ??
+  const localLastIndex = documentlastIndex.value
+
+  documentlastIndex.value = rowIndex
+  document.getSelection().removeAllRanges()
+
+  if ($q.platform.is.mobile === true)
+   evt = { ctrlKey: true }
+  else if (evt !== Object(evt) || (evt.shiftKey !== true && evt.ctrlKey !== true)) {
+   documentsSelected.value = added === true ? rows : []
+   return
+  }
+
+  const operateSelection = added === true
+   ? selRow => {
+     const selectedIndex = documentPresent(selRow)
+     if (selectedIndex === -1)
+      documentsSelected.value = documentsSelected.value.concat(selRow)
+   }
+   : selRow => {
+     const selectedIndex = documentPresent(selRow)
+     if (selectedIndex > -1)
+      documentsSelected.value = documentsSelected.value.slice(0, selectedIndex).concat(documentsSelected.value.slice(selectedIndex + 1))
+   }
+
+  if (localLastIndex === null || evt.shiftKey !== true) {
+   operateSelection(row)
+   return
+  }
+
+  const from = localLastIndex < rowIndex ? localLastIndex : rowIndex
+  const to = localLastIndex < rowIndex ? rowIndex : localLastIndex
+  for (let i = from; i <= to; i += 1)
+   operateSelection(filteredSortedRows[i])
+}
+
+const documentRows = ref([])
 
 const trimSliceDialog = ref(false)
 const deleteSliceDialog = ref(false)
 
-let currentSlice = {}
-const sliceInitial = {
-  name: '',
-  description: '',
-  id: 0,
-  customdata: { }
+let currentHoveredSlice = {}
+const getSliceInitial = () => {
+  return {
+    name: '',
+    description: '',
+    id: 0,
+    customdata: { }
+  }
 }
 
 const selectSliceReturnToDao = ref(0)
@@ -260,21 +411,21 @@ const showSliceSelectionDialog = ref(false)
 
 const showNoteDialog = ref(false)
 const noteName = ref(null)
-const noteURL = ref(null)
 const noteDescription = ref(null)
 const noteDialogTitle = ref('')
 
-const noteInitial = {
-  name: '',
-  url: '',
-  description: '',
-  slices: []
+const getNoteInitial = () => {
+  return {
+    name: '',
+    description: '',
+    slices: []
+  }
 }
 
-let note = reactive({...noteInitial})
+let note = reactive(getNoteInitial())
 
 const maxDepth = 3
-const menuSlice = reactive({...sliceInitial}) // must have {...} !
+const menuSlice = reactive(getSliceInitial()) // it always doing two way binding !
 const showMenu = ref(false)
 const showSliceDialog = ref(false)
 const sliceDialogTitle = ref('')
@@ -285,17 +436,11 @@ const plotlyRedraw = ref(true)
 
 const noteClearSlices = () => note.slices.length = 1
 
-String.prototype.lastIndexOfEnd = function(string) {
-  var io = this.lastIndexOf(string);
-  return io == -1 ? -1 : io + string.length;
-}
-
 const sliceSelected = slice => {
-  let s = {
-    name: slice.label.slice(0, slice.label.lastIndexOfEnd(' [') - 2),
+  note.slices.push({
+    name: slice.label.substr(0, slice.label.lastIndexOf(' [')),
     id: slice.id
-  }
-  note.slices.push(s)
+  })
   showSliceSelectionDialog.value = false
 }
 
@@ -323,13 +468,13 @@ watch(showMenu, shown => {
     showMenu.value = true
     return
   }
-  if (!currentSlice.name) {
+  if (!currentHoveredSlice.name) {
     showMenu.value = false
     return
   }
-  Object.assign(menuSlice, currentSlice)
+  Object.assign(menuSlice, currentHoveredSlice)
   // menuSlice.name is null for 'Dao' - need this to hide menu entries for it
-  menuSlice.name = (currentSlice.id == 1) ? null : currentSlice.name
+  menuSlice.name = (currentHoveredSlice.id == 1) ? null : currentHoveredSlice.name
 })
 
 const noteSlices = computed(() => {
@@ -346,7 +491,7 @@ const newEditNote = edit => {
   noteDialogTitle.value = edit ? ('Edit ' + note.name + ' Note') : ('New Note')
   noteDialogTitle.value += ' in ' + (menuSlice.name ? menuSlice.name : 'Dao')
   if (!edit)
-    Object.assign({ note, noteInitial })
+    Object.assign(note, getNoteInitial())
   let is = {
     name: menuSlice.name ? menuSlice.name : 'Dao',
     id: menuSlice.id
@@ -364,7 +509,7 @@ const noteProcess = () => {
       if (res.e)
         $q.$notify(res.e)
       else {
-        refresh()
+        refreshSlices()
         showNoteDialog.value = false
       }
     }, note)
@@ -373,7 +518,7 @@ const noteProcess = () => {
       if (res.e)
         $q.$notify(res.e)
       else {
-        refresh()
+        refreshDocuments()
         showNoteDialog.value = false
       }
     }, note)
@@ -386,7 +531,7 @@ const sliceProcess = () => {
       if (res.e)
         $q.$notify(res.e)
       else {
-        refresh()
+        refreshSlices()
         showSliceDialog.value = false
       }
     }, menuSlice)
@@ -395,15 +540,15 @@ const sliceProcess = () => {
       if (res.e)
         $q.$notify(res.e)
       else {
-        refresh()
+        refreshSlices()
         showSliceDialog.value = false
       }
     }, menuSlice)
   }
 }
 
-const refresh = (newRoot) => {
-  // logger.error('refresh: selectedSliceId :' + selectedSliceId + ', newRoot: ' + newRoot)
+const refreshSlices = (newRoot) => {
+  // logger.error('refreshSlices: selectedSliceId :' + selectedSliceId + ', newRoot: ' + newRoot)
   let level = (selectedSliceId == '1' ? undefined : selectedSliceId)
   if (newRoot) { // move back
     level = (newRoot == 1 ? undefined : selectedSliceId) // set to old root for now
@@ -422,7 +567,8 @@ const refresh = (newRoot) => {
        values: []
      }
      for (let s of res.d.slices) {
-       slices.labels.push(s.name + ' [' + s.out_count + ']')
+       let name = s.name + ' [' + s.out_count + ']'
+       slices.labels.push(name)
        slices.hovertext.push(s.name + (s.description ? (' (' + s.description + ')') : ''))
        slices.ids.push(s.key)
        if (!slices.parents.length) {
@@ -432,7 +578,8 @@ const refresh = (newRoot) => {
           slices.parents.push(s.parent)
        slices.customdata.push({
          parent: s.parent,
-         out_count: s.out_count
+         out_count: s.out_count,
+         doc_count: s.doc_count
        })
        slices.values.push(1)
      }
@@ -450,7 +597,7 @@ const newEditSlice = edit => {
   sliceDialogTitle.value = edit ? ('Edit ' + menuSlice.name + ' Slice') : ('New Slice in ' + (menuSlice.name ? menuSlice.name : 'Dao'))
   if (!edit) {
     let id = menuSlice.id
-    Object.assign(menuSlice, sliceInitial)
+    Object.assign(menuSlice, getSliceInitial())
     menuSlice.id = id
   } else if (menuSlice.id == '1')
           return
@@ -461,9 +608,9 @@ const newEditSlice = edit => {
 }
 
 const plotlyDoubleClick = ev => {
-  // // console.log('*** plotlyDoubleClick', currentSlice)
-  // if (currentSlice.id) {
-  //   Object.assign(menuSlice, currentSlice)
+  // // console.log('*** plotlyDoubleClick', currentHoveredSlice)
+  // if (currentHoveredSlice.id) {
+  //   Object.assign(menuSlice, currentHoveredSlice)
   //   newEditSlice(true)
   // }
 }
@@ -477,7 +624,7 @@ const deleteSlice = mode => {
     $q.$notify(res.e)
    else {
      $q.$store.movingSlice = null
-     refresh()
+     refreshSlices()
    }
   }, {
     delSlice: menuSlice,
@@ -492,7 +639,7 @@ const moveSlice = cancel => {
         $q.$notify(res.e)
        else {
          $q.$store.movingSlice = null
-         refresh()
+         refreshSlices()
        }
     })
     showMenu.value = false
@@ -501,7 +648,7 @@ const moveSlice = cancel => {
   if ($q.$store.movingSlice)
     return
   // console.log('*** moveSlice start', menuSlice)
-  refresh('1')
+  refreshSlices('1')
   sfinx.sendMsg('SliceMoveMode', res => {
   if (res.e)
     $q.$notify(res.e)
@@ -515,27 +662,27 @@ const moveSlice = cancel => {
 }
 
 const rightClick = ev => {
-  if (!currentSlice.name) {
+  if (!currentHoveredSlice.name) {
     ev.preventDefault()
     return
   }
-  // console.log('*** rightClick at', currentSlice)
+  // console.log('*** rightClick at', currentHoveredSlice)
 }
 
 const plotlyHover = e => {
   let p = e.points[0]
-  currentSlice = {
+  currentHoveredSlice = {
     name: p.label?.substr(0, p.label.lastIndexOf(' [')),
     id: p.id,
     description: p.hovertext,
     customdata: p.customdata,
   }
-  // console.log('*** plotlyHover c:', currentSlice, 'p:', p)
+  // console.log('*** plotlyHover c:', currentHoveredSlice, 'p:', p, "chs:", currentHoveredSlice)
 }
 
 const plotlyUnHover = e => {
-  // console.log('*** plotlyUnHover', currentSlice)
-  currentSlice = {}
+  // console.log('*** plotlyUnHover', currentHoveredSlice)
+  currentHoveredSlice = {}
 }
 
 let selectedSliceId = '1'
@@ -551,10 +698,33 @@ const setRootSlice = root => {
   }
 }
 
+let documentsFilter = {
+  orphans: null,
+  slices: ['1'],
+  types: null
+}
+
+const refreshDocuments = (slice) => {
+  if (slice) {
+    // if (documentsFilter.slices.indexOf(slice.id) === -1)
+    //   documentsFilter.slices.push(slice.id)
+    documentsFilter.slices = [slice.id]
+  }
+  sfinx.sendMsg('GetDocuments', res => {
+    if (res.e)
+      $q.$notify(res.e)
+    else {
+      // console.log('GetDocuments:', res.d)
+      documentRows.value = res.d
+      documentsTitle.value = 'Documents in ' + (slice?.name ? slice.name : 'Dao') + ' [' + res.d.length + ']'
+    }
+  }, documentsFilter)
+}
+
 const plotlyClick = e => {
   let p = e.points[0]
   if (keyModifier == 'Shift') {
-    // console.log('*** Sfinx: selected slice: id:', p.id, 'label: [', p.label, '], parentId: ', p.customdata)
+    // logger.info('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
     if ($q.$store.movingSlice) {
       sfinx.sendMsg('SliceMoveMode', res => {
       if (res.e)
@@ -562,25 +732,26 @@ const plotlyClick = e => {
        else {
          // console.log('*** moveSlice finish', $q.$store.movingSlice)
          $q.$store.movingSlice = null
-         refresh()
+         refreshSlices()
        }
       }, {
         newParent: { id: p.id }
       })
-    }
+    } else
+        refreshDocuments(currentHoveredSlice)
     return false
   } else { // usual click
-      // logger.error('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentSlice: ' + logger.json(currentSlice))
-      selectedSliceId =  currentSlice.id
+      // logger.error('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))
+      selectedSliceId =  currentHoveredSlice.id
       if (selectedSliceId != '1') {
         if (selectedSliceId == dataRoot) { // back to parent
-          // logger.error('Back to parent: ' + currentSlice.customdata.parent)
-          refresh(currentSlice.customdata.parent)
+          // logger.error('Back to parent: ' + currentHoveredSlice.customdata.parent)
+          refreshSlices(currentHoveredSlice.customdata.parent)
           return false
         }
-        if (currentSlice.customdata.out_count) { // move forward by DB
+        if (currentHoveredSlice.customdata.out_count) { // move forward by DB
           // logger.error('Move forward')
-          refresh()
+          refreshSlices()
           return false
        }
      }
@@ -636,13 +807,15 @@ onUnmounted(() => {
 onMounted(() => {
   window.addEventListener('keydown', keyDown)
   window.addEventListener('keyup', keyUp)
-  refresh()
+  refreshSlices()
+  refreshDocuments()
   emitter.on('ReturnToDao', () => {
     // logger.error('Return to Dao from ' + dataRoot)
     if (dataRoot != '1')
-      refresh('1')
+      refreshSlices('1')
     else
       setRootSlice()
+    // refreshDocuments({ name: 'Dao', id: '1' })
   })
 })
 
@@ -654,8 +827,30 @@ const keyUp = e => {
   keyModifier = null
 }
 </script>
-<style>
-.main-svg {
-  background: rgba(100, 100, 100, 0) !important;
-}
+
+<style lang="sass">
+
+.main-svg
+  background: rgba(100, 100, 100, 0) !important
+
+.sticky-header-table
+  /* height or max-height is important */
+  height: 310px
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: #e0b010
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
 </style>

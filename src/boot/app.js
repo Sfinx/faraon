@@ -35,7 +35,7 @@ function createApp()
  app.parameters = url2json()
  app.buildInfo = 'git: ' + bjson.git + ' ' + (process.env.DEV ? "development" : "production") + ' build from ' + bjson.buildStamp
  logger.info(app.name + ' v' + app.version + ' started. ' + app.buildInfo)
- app.parameters.debug =  process.env.PROD ? 0 : 1
+ app.parameters.debug =  process.env.PROD ? 0 : 2
  if (app.parameters.debug) {
    logger.info('Setting debug level to ' + app.parameters.debug)
  }

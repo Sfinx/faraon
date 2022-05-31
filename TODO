@@ -1,15 +1,34 @@
 
- - add documents browser
-	- filters
+ - add to documents browser
+	- new
+	- edit
+	- delete
+ - add document viewer
  - show documents in slice description
+ - add posibility to attach one document to other
+	- add small slices browser
+	- add small attached docs browser
  - documents CRUD
-	- notes
+	- note
+	  - encrypted
+	- todo
+	- event
+	  - y/m/d h:m:s
+	  - trigger: none/once/periodic
+	  - send to telegram
 	- persons
+	  - create & attach birthday event
 	- know how
-	- files
+	- file
+	  - types
+	    - ebook/sound/image
+	    - collection flag (add entries/directories)
+	  - play collections
+	  - edit collections, set skip flag for entry
 misc:
 
  - add slices & documents search
+ - create full SelectSlice component
+ - create full SelectDoc component
  - add voice search (read the book)
  - add div zoom by scroll/pan event
-

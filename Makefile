@@ -7,11 +7,16 @@ bson:
 		 \"git\": \"${COMMIT_ID}\",\n\
 		 \"buildStamp\": \"${BUILD_TIMESTAMP}\"\n\
 	}" > build.json
-	
-d dev:	bson
-	@#ncu -u
+
+u upgrade:
+	@ncu -u
 	@yarn
 	@quasar upgrade -i
+
+b build: bson upgrade
+	@quasar build
+
+d dev:	bson
 	@quasar dev
 
 envinfo:

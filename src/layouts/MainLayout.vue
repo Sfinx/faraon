@@ -1,5 +1,5 @@
 <template>
-  <q-layout @contextmenu.prevent view="lHh Lpr lFf">
+  <q-layout @contextmenu.prevent view="lHh Lpr lFf" style="user-select: none;">
 
     <q-header elevated>
       <q-toolbar>
