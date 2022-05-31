@@ -1,21 +1,16 @@
 
- - add to documents browser
-	- new
-	- edit
-	- delete
  - add document viewer
- - show documents in slice description
- - add posibility to attach one document to other
-	- add small slices browser
-	- add small attached docs browser
+ - implement orphans
  - documents CRUD
 	- note
+	  - add slice/docs editor/browser
 	  - encrypted
 	- todo
 	- event
 	  - y/m/d h:m:s
 	  - trigger: none/once/periodic
-	  - send to telegram
+	  - notify options
+	    - send to telegram
 	- persons
 	  - create & attach birthday event
 	- know how
@@ -25,9 +20,18 @@
 	    - collection flag (add entries/directories)
 	  - play collections
 	  - edit collections, set skip flag for entry
+	- todo
+	- aim
+
+ - add posibility to attach one document to other
+	- attach can be two way (inbound & outbound)
+	- add selection cb to document viewer
+	- add small slices browser
+	- add small attached docs browser
 misc:
 
  - add slices & documents search
+ - transact edit/delete operations
  - create full SelectSlice component
  - create full SelectDoc component
  - add voice search (read the book)

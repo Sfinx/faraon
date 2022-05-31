@@ -1,6 +1,8 @@
 <template>
   <q-page class="flex flex-center" style="user-select: none;">
     <q-resize-observer @resize="onResize" />
+
+    <!-- main slices tree -->
     <div @dblclick="plotlyDoubleClick" @contextmenu="rightClick">
       <q-menu
           v-model="showMenu"
@@ -21,21 +23,9 @@
               </q-item-section>
 
               <q-menu anchor="top end" self="top start">
-                <q-list>
-                  <q-item clickable v-close-popup @click="newEditNote()">
-                    <q-item-section>Add Note</q-item-section>
-                  </q-item>
-                  <q-item :disabled="1" clickable v-close-popup>
-                    <q-item-section>Add File</q-item-section>
-                  </q-item>
-                  <q-item :disabled="1" clickable v-close-popup>
-                    <q-item-section>Add Event</q-item-section>
-                  </q-item>
-                  <q-item :disabled="1" clickable v-close-popup>
-                    <q-item-section>Add Person</q-item-section>
-                  </q-item>
-                  <q-item :disabled="1" clickable v-close-popup>
-                    <q-item-section>Add Know How</q-item-section>
+                <q-list v-for="doc in documentTypes">
+                  <q-item clickable v-close-popup @click="newEditDocument(doc, false)">
+                    <q-item-section>Add {{ doc }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -63,10 +53,11 @@
       <plotly v-if="plotlyData?.length > 0" :key="plotlyRedraw" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" @click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
     </div>
 
+    <!-- document browser -->
     <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 30%;">
       <q-card class="q-dialog-plugin" style="user-select: none; height: 100%; min-width: 95%;">
         <q-toolbar class="bg-primary glossy text-white">
-          <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
+          <q-toolbar-title>{{ documentsTitle.label }}</q-toolbar-title>
         </q-toolbar>
         <q-input dense outlined label-color="black" label="Search" style="height: 6%" class="q-ma-sm"/>
         <!-- <q-card-section style="height: 100%;"> -->
@@ -85,6 +76,7 @@
             row-key="id"
             @row-click="selectDocument"
             @row-dblclick="viewDocument"
+            no-data-label="No documents yet"
           >
             <template v-slot:body-cell-type="props" >
               <q-td class="text-left">
@@ -104,9 +96,17 @@
             <q-btn class="dense bg-secondary text-white" glossy label="Filter" /> <!-- by slices / by type / orphans only -->
           </div>
           <div class="q-gutter-sm">
-            <q-btn class="dense bg-red text-white" glossy label="Delete" />
-            <q-btn class="dense bg-secondary text-white" glossy label="Edit" />
-            <q-btn class="dense bg-secondary text-white" glossy label="New" /> <!-- make as menubutton -->
+            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteDocument()" />
+            <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()" />
+            <q-btn class="dense bg-secondary text-white" glossy label="New">
+              <q-menu>
+                <q-list v-for="doc in documentTypes" style="min-width: 120px">
+                  <q-item clickable v-close-popup @click="newEditDocument(doc, false, documentsTitle)">
+                    <q-item-section>{{ doc }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
           </div>
         </q-card-actions>
       </q-card>
@@ -247,6 +247,23 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="deleteDocumentDialog">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Confirm Document Deletion</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          {{ 'Are you sure that want to delete the ' + documentsSelected[0].type + ' \'' + documentsSelected[0].name + '\' ?' }}
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Yes" @click="deleteDocument(1)" />
+          <q-btn flat label="Close" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-dialog v-model="trimSliceDialog">
       <q-card>
         <q-card-section>
@@ -294,6 +311,7 @@ import selectSlice from 'components/SelectSlice.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
 
+const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
 const $q = useQuasar()
 
 const documentColumns = [
@@ -313,14 +331,47 @@ const documentColumns = [
   { name: 'ctime', align: 'center', label: 'Stamp', field: 'ctime', sortable: true, format: (val, row) => {
       let d = new Date(val * 1000)
       return format(d, 'DD/MM/YY hh:mm:ss')
-      // return d.toLocaleString('uk', { timeStyle: "long", dateStyle: 'short' })
     }
   }
 ]
-const documentsTitle = ref(null)
+
+const deleteDocumentDialog = ref(false)
+let documentsTitle = reactive({})
 const documentsTable = ref(null)
 const documentsSelected = ref([])
 const documentlastIndex = ref(null)
+
+const deleteDocument = (really) => {
+  if (!documentsSelected.value.length || documentsSelected.value.length > 1)
+    return
+  if (really) {
+    deleteDocumentDialog.value = false
+    let doc = documentsSelected.value[0].type
+    doc = doc.charAt(0).toUpperCase() + doc.slice(1)
+    try {
+      eval('delete' + doc)(documentsSelected.value[0])
+    } catch(e) {
+      logger.error('deleteDocument: ' + e.message)
+    }
+  } else
+      deleteDocumentDialog.value = true
+}
+
+const editDocument = () => {
+  if (!documentsSelected.value.length || documentsSelected.value.length > 1)
+    return
+  let doc = documentsSelected.value[0].type
+  doc = doc.charAt(0).toUpperCase() + doc.slice(1)
+  newEditDocument(doc, true, documentsSelected.value[0])
+}
+
+const newEditDocument = (doc, edit, inSlice) => {
+  try {
+    eval('newEdit' + doc)(edit, inSlice)
+  } catch(e) {
+    logger.error('newEditDocument: ' + e.message)
+  }
+}
 
 const documentPresent = (row) => {
   for (let [idx, r] of documentsSelected.value?.entries()) {
@@ -487,20 +538,48 @@ const noteSlices = computed(() => {
   return '[' + slices + ']'
 })
 
-const newEditNote = edit => {
+const newEditNote = (edit, inSlice) => {
   noteDialogTitle.value = edit ? ('Edit ' + note.name + ' Note') : ('New Note')
-  noteDialogTitle.value += ' in ' + (menuSlice.name ? menuSlice.name : 'Dao')
-  if (!edit)
+  if (!edit) {
+    if (!inSlice)
+      inSlice = menuSlice
+    let s = {
+      name: inSlice.name ? inSlice.name : 'Dao',
+      id: inSlice.id ? inSlice.id : '1'
+    }
+    noteDialogTitle.value += ' in ' + s.name
     Object.assign(note, getNoteInitial())
-  let is = {
-    name: menuSlice.name ? menuSlice.name : 'Dao',
-    id: menuSlice.id
+    note.slices.push(s)
+  } else {
+    let inSlices
+    for (let s of inSlice.slices) {
+      if (!inSlices)
+        inSlices = '['
+      else
+        inSlices += ', '
+      inSlices += s.name
+    }
+    inSlices += ']'
+    noteDialogTitle.value += ' in ' + inSlices
+    Object.assign(note, inSlice)
   }
-  note.slices.push(is)
   showNoteDialog.value = true
   setTimeout(() => {
    noteName.value.focus()
   }, 50)
+}
+
+const deleteNote = (note) => {
+  sfinx.sendMsg('DeleteNote', res => {
+    if (res.e)
+      $q.$notify(res.e)
+    else {
+      refreshDocuments()
+      $q.$store.total_documents--
+      documentsSelected.value = []
+      showNoteDialog.value = false
+    }
+  }, note)
 }
 
 const noteProcess = () => {
@@ -509,7 +588,7 @@ const noteProcess = () => {
       if (res.e)
         $q.$notify(res.e)
       else {
-        refreshSlices()
+        refreshDocuments()
         showNoteDialog.value = false
       }
     }, note)
@@ -578,8 +657,8 @@ const refreshSlices = (newRoot) => {
           slices.parents.push(s.parent)
        slices.customdata.push({
          parent: s.parent,
-         out_count: s.out_count,
-         doc_count: s.doc_count
+         out_count: s.out_count
+         // doc_count: s.doc_count
        })
        slices.values.push(1)
      }
@@ -620,11 +699,13 @@ const deleteSlice = mode => {
     return
   // console.log('*** deleteSlice, mode: ' + mode, menuSlice)
   sfinx.sendMsg('DeleteSlice', res => {
+    trimSliceDialog.value = deleteSliceDialog.value = false
   if (res.e)
     $q.$notify(res.e)
    else {
      $q.$store.movingSlice = null
      refreshSlices()
+     refreshDocuments() // documents can become orphaned
    }
   }, {
     delSlice: menuSlice,
@@ -716,7 +797,12 @@ const refreshDocuments = (slice) => {
     else {
       // console.log('GetDocuments:', res.d)
       documentRows.value = res.d
-      documentsTitle.value = 'Documents in ' + (slice?.name ? slice.name : 'Dao') + ' [' + res.d.length + ']'
+      let label = (slice?.name ? slice.name : 'Dao')
+      Object.assign(documentsTitle, {
+        label: 'Documents in ' + label + ' [' + res.d.length + ']',
+        name: label,
+        id: slice?.id ? slice?.id : '1'
+      })
     }
   }, documentsFilter)
 }
