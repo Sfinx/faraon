@@ -10,6 +10,12 @@ const routes = [
         meta: {
           requiresAuth: true
         }
+      },
+      {
+        path: 'help', component: () => import('pages/Help.vue'),
+        meta: {
+          requiresAuth: true
+        }
       }
     ]
   },

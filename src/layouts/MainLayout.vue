@@ -40,6 +40,24 @@
           </q-item-section>
         </q-item>
 
+        <q-item clickable v-if="$q.$store.loggedUser" to="/sfinx" style="text-decoration: none; color: inherit;">
+          <q-item-section avatar>
+            <q-icon name="mdi-alpha-s-box" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Sfinx</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable v-if="$q.$store.loggedUser" to="/help" style="text-decoration: none; color: inherit;">
+          <q-item-section avatar>
+            <q-icon name="mdi-help-rhombus" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Help</q-item-label>
+          </q-item-section>
+        </q-item>
+
         <q-item clickable v-if="$q.$store.loggedUser" @click="sfinx.logout()" to="/" style="text-decoration: none; color: inherit;">
           <q-item-section avatar>
             <q-icon name="mdi-logout" />
@@ -81,10 +99,12 @@
 
     <q-footer elevated class="bg-primary text-white text-h5" style="user-select: none">
       <q-toolbar>
-        <q-btn glossy color="secondary" label="Return to Dao" @click="emitter.emit('ReturnToDao')" />
-        <q-toolbar-title class="absolute-right q-mt-sm q-mr-md">
-          {{ logInfo }}
-        </q-toolbar-title>
+        <div v-if="router.currentRoute.value.path == '/sfinx'">
+          <q-btn glossy color="secondary" label="Return to Dao" @click="emitter.emit('ReturnToDao')" />
+          <q-toolbar-title class="absolute-right q-mt-sm q-mr-md">
+            {{ logInfo }}
+          </q-toolbar-title>
+        </div>
       </q-toolbar>
     </q-footer>
 

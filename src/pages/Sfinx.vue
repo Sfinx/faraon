@@ -24,16 +24,16 @@
 
               <q-menu anchor="top end" self="top start">
                 <q-list v-for="doc in documentTypes">
-                  <q-item clickable v-close-popup @click="newEditDocument(doc, false)">
+                  <q-item clickable v-close-popup @click="newOrEditDocument(doc, false)">
                     <q-item-section>Add {{ doc }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
             </q-item>
-          <q-item v-if="!$q.$store.movingSlice" clickable v-close-popup @click="newEditSlice()">
+          <q-item v-if="!$q.$store.movingSlice" clickable v-close-popup @click="newOrEditSlice()">
             <q-item-section>Add Slice</q-item-section>
           </q-item>
-          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="newEditSlice(true)">
+          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="newOrEditSlice(true)">
             <q-item-section>Edit Slice</q-item-section>
           </q-item>
           <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="moveSlice()">
@@ -112,7 +112,7 @@
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
                 <q-list v-for="doc in documentTypes" style="min-width: 120px">
-                  <q-item clickable v-close-popup @click="newEditDocument(doc, false, documentsFilter)">
+                  <q-item clickable v-close-popup @click="newOrEditDocument(doc, false, documentsFilter)">
                     <q-item-section>{{ doc }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -293,7 +293,7 @@ const $q = useQuasar()
 const deleteConfirmDialog = ref(false)
 const deleteConfirmTitle = ref('')
 const deleteConfirmText = ref('')
-let deleteConfirmCb = reactive(() => logger.trace('deleteConfirmCb'))
+let deleteConfirmCb = reactive({})
 
 const deleteConfirmOk = (ev) => {
   deleteConfirmCb()
@@ -353,14 +353,14 @@ const editDocument = () => {
     return
   let doc = documentsSelected.value[0].type
   doc = doc.charAt(0).toUpperCase() + doc.slice(1)
-  newEditDocument(doc, true, documentsSelected.value[0])
+  newOrEditDocument(doc, true, documentsSelected.value[0])
 }
 
-const newEditDocument = (doc, edit, inSlice) => {
+const newOrEditDocument = (doc, edit, inSlice) => {
   try {
-    eval('newEdit' + doc)(edit, inSlice)
+    eval('newOrEdit' + doc)(edit, inSlice)
   } catch(e) {
-    logger.error('newEditDocument: ' + e.message)
+    logger.error('newOrEditDocument: ' + e.message)
   }
 }
 
@@ -475,9 +475,10 @@ const plotlyRedraw = ref(true)
 
 const noteClearSlices = () => note.slices.length = 1
 
+const sliceSeparator = '|'
 const sliceSelected = slice => {
   note.slices.push({
-    name: slice.label.substr(0, slice.label.lastIndexOf(' [')),
+    name: slice.label.substr(0, slice.label.lastIndexOf(sliceSeparator)),
     id: slice.id
   })
   showSliceSelectionDialog.value = false
@@ -552,7 +553,7 @@ const getSlicesNames = (d) => {
   return label
 }
 
-const newEditNote = (edit, inSlice) => {
+const newOrEditNote = (edit, inSlice) => {
   let inSlices = ''
   if (!edit) {
     if (!inSlice)
@@ -658,7 +659,7 @@ const refreshSlices = (newRoot) => {
        values: []
      }
      for (let s of res.d.slices) {
-       let name = s.name + ' [' + s.out_count + ']'
+       let name = s.name + sliceSeparator + s.out_count
        slices.labels.push(name)
        slices.hovertext.push(s.name + (s.description ? (' (' + s.description + ')') : ''))
        slices.ids.push(s.key)
@@ -685,7 +686,7 @@ const refreshSlices = (newRoot) => {
   })
 }
 
-const newEditSlice = edit => {
+const newOrEditSlice = edit => {
   sliceDialogTitle.value = edit ? ('Edit ' + menuSlice.name + ' Slice') : ('New Slice in ' + (menuSlice.name ? menuSlice.name : 'Dao'))
   if (!edit) {
     let id = menuSlice.id
@@ -703,7 +704,7 @@ const plotlyDoubleClick = ev => {
   // // console.log('*** plotlyDoubleClick', currentHoveredSlice)
   // if (currentHoveredSlice.id) {
   //   Object.assign(menuSlice, currentHoveredSlice)
-  //   newEditSlice(true)
+  //   newOrEditSlice(true)
   // }
 }
 
@@ -762,7 +763,7 @@ const rightClick = ev => {
 const plotlyHover = e => {
   let p = e.points[0]
   currentHoveredSlice = {
-    name: p.label?.substr(0, p.label.lastIndexOf(' [')),
+    name: p.label?.substr(0, p.label.lastIndexOf(sliceSeparator)),
     id: p.id,
     description: p.customdata.description,
     customdata: p.customdata
