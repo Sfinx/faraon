@@ -42,10 +42,12 @@
           <q-item v-if="$q.$store.movingSlice" clickable v-close-popup @click="moveSlice(true)">
             <q-item-section>Cancel Slice Move</q-item-section>
           </q-item>
-          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="trimSliceDialog = true">
+          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteConfirm('Confirm Slice Trimming', 'Are you sure that want to trim the \'' + menuSlice.name + '\' slice ?',
+              () => deleteSlice())">
             <q-item-section class='text-red'>Delete Slice by trimming</q-item-section>
           </q-item>
-          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteSliceDialog = true">
+          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteConfirm('Confirm Slice Deletion', 'Are you sure that want to recursively delete the \'' + menuSlice.name + '\' slice ?',
+              () => deleteSlice(1))">
             <q-item-section class='text-red'>Delete Slice Recursively</q-item-section>
           </q-item>
         </q-list>
@@ -104,7 +106,8 @@
             </q-btn>
           </div>
           <div class="q-gutter-sm">
-            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteDocument()" />
+            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteConfirm('Confirm Document Deletion',
+                'Are you sure that want to delete the ' + documentsSelected??[0].type + ' \'' + documentsSelected??[0].name + '\' ?', () => (documentsSelected?.length == 1), () => deleteDocument())" />
             <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()" />
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
@@ -255,52 +258,16 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="deleteDocumentDialog">
+    <q-dialog v-model="deleteConfirmDialog">
       <q-card>
         <q-card-section>
-          <div class="text-h6">Confirm Document Deletion</div>
+          <div class="text-h6">{{ deleteConfirmTitle }}</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          {{ 'Are you sure that want to delete the ' + documentsSelected[0].type + ' \'' + documentsSelected[0].name + '\' ?' }}
-        </q-card-section>
+        <q-card-section class="q-pt-none">{{ deleteConfirmText }}</q-card-section>
 
         <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Yes" @click="deleteDocument(1)" />
-          <q-btn flat label="Close" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="trimSliceDialog">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Confirm Slice Trimming</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          {{ 'Are you sure that want to trim the \'' + menuSlice.name + '\' slice ?' }}
-        </q-card-section>
-
-        <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Yes" @click="deleteSlice(0)" />
-          <q-btn flat label="Close" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="deleteSliceDialog">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Confirm Slice Deletion</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          {{ 'Are you sure that want to recursively delete the \'' + menuSlice.name + '\' slice ?' }}
-        </q-card-section>
-
-        <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Yes" @click="deleteSlice(1)" />
+          <q-btn flat label="Yes" @click="deleteConfirmOk" />
           <q-btn flat label="Close" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -323,6 +290,29 @@ import { format } from 'fecha'
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
 const $q = useQuasar()
 
+const deleteConfirmDialog = ref(false)
+const deleteConfirmTitle = ref('')
+const deleteConfirmText = ref('')
+let deleteConfirmCb = reactive(() => logger.trace('deleteConfirmCb'))
+
+const deleteConfirmOk = (ev) => {
+  deleteConfirmCb()
+  deleteConfirmDialog.value = false
+}
+
+const deleteConfirm = (title, text, precheck, cb) => {
+  if (!cb) {
+    cb = precheck
+    precheck = null
+  }
+  if (precheck && !precheck())
+    return
+  deleteConfirmTitle.value = title
+  deleteConfirmText.value = text
+  deleteConfirmCb = cb
+  deleteConfirmDialog.value = true
+}
+
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
   { name: 'name', align: 'center', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
@@ -344,25 +334,18 @@ const documentColumns = [
   }
 ]
 
-const deleteDocumentDialog = ref(false)
 const documentsTable = ref(null)
 const documentsSelected = ref([])
 const documentlastIndex = ref(null)
 
-const deleteDocument = (really) => {
-  if (!documentsSelected.value.length || documentsSelected.value.length > 1)
-    return
-  if (really) {
-    deleteDocumentDialog.value = false
-    let doc = documentsSelected.value[0].type
-    doc = doc.charAt(0).toUpperCase() + doc.slice(1)
-    try {
-      eval('delete' + doc)(documentsSelected.value[0])
-    } catch(e) {
-      logger.error('deleteDocument: ' + e.message)
-    }
-  } else
-      deleteDocumentDialog.value = true
+const deleteDocument = () => {
+  let doc = documentsSelected.value[0].type
+  doc = doc.charAt(0).toUpperCase() + doc.slice(1)
+  try {
+    eval('delete' + doc)(documentsSelected.value[0])
+  } catch(e) {
+    logger.error('deleteDocument: ' + e.message)
+  }
 }
 
 const editDocument = () => {
@@ -451,9 +434,6 @@ const onDocumentSelection = ({ rows, added, evt }) => {
 }
 
 const documentRows = ref([])
-
-const trimSliceDialog = ref(false)
-const deleteSliceDialog = ref(false)
 
 let currentHoveredSlice = {}
 const getSliceInitial = () => {
@@ -608,7 +588,6 @@ const deleteNote = (note) => {
       refreshDocuments()
       $q.$store.total_documents--
       documentsSelected.value = []
-      showNoteDialog.value = false
     }
   }, note)
 }
@@ -729,17 +708,13 @@ const plotlyDoubleClick = ev => {
 }
 
 const deleteSlice = mode => {
-  if ($q.$store.movingSlice)
-    return
   // console.log('*** deleteSlice, mode: ' + mode, menuSlice)
   sfinx.sendMsg('DeleteSlice', res => {
-    trimSliceDialog.value = deleteSliceDialog.value = false
   if (res.e)
     $q.$notify(res.e)
    else {
-     $q.$store.movingSlice = null
      refreshSlices()
-     refreshDocuments() // documents can become orphaned
+     refreshDocuments() // refresh as documents can become orphaned
    }
   }, {
     delSlice: menuSlice,
