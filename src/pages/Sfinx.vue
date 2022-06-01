@@ -53,11 +53,11 @@
       <plotly v-if="plotlyData?.length > 0" :key="plotlyRedraw" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" @click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
     </div>
 
-    <!-- document browser -->
+    <!-- documents browser -->
     <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 30%;">
       <q-card class="q-dialog-plugin" style="user-select: none; height: 100%; min-width: 95%;">
         <q-toolbar class="bg-primary glossy text-white">
-          <q-toolbar-title>{{ documentsTitle.label }}</q-toolbar-title>
+          <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
         <q-input dense outlined label-color="black" label="Search" style="height: 6%" class="q-ma-sm"/>
         <!-- <q-card-section style="height: 100%;"> -->
@@ -93,7 +93,15 @@
         <!-- </q-card-section> -->
         <q-card-actions align="between">
           <div>
-            <q-btn class="dense bg-secondary text-white" glossy label="Filter" /> <!-- by slices / by type / orphans only -->
+            <q-btn class="dense bg-secondary text-white" glossy label="Filter"> <!-- by slices / by type / orphans only -->
+              <q-menu>
+                <q-list style="min-width: 120px">
+                  <q-item>
+                    <q-toggle v-close-popup v-model="documentsFilter.orphans" label="Orphans only" />
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
           </div>
           <div class="q-gutter-sm">
             <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteDocument()" />
@@ -101,7 +109,7 @@
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
                 <q-list v-for="doc in documentTypes" style="min-width: 120px">
-                  <q-item clickable v-close-popup @click="newEditDocument(doc, false, documentsTitle)">
+                  <q-item clickable v-close-popup @click="newEditDocument(doc, false, documentsFilter)">
                     <q-item-section>{{ doc }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -302,6 +310,7 @@
 </template>
 
 <script setup>
+
 import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
 import sfinx from '@/sfinx'
 import { useQuasar } from 'quasar'
@@ -336,7 +345,6 @@ const documentColumns = [
 ]
 
 const deleteDocumentDialog = ref(false)
-let documentsTitle = reactive({})
 const documentsTable = ref(null)
 const documentsSelected = ref([])
 const documentlastIndex = ref(null)
@@ -512,6 +520,17 @@ const onResize = () => {
   plotlyRedraw.value++
 }
 
+let documentsFilter = reactive({
+  orphans: false,
+  slices: [{ id: '1' }], // array of slice objects
+  types: null
+})
+
+watch(documentsFilter, () => {
+  logger.trace('refreshDocuments: watch')
+  refreshDocuments()
+})
+
 watch(showMenu, shown => {
   if (!shown)
     return
@@ -528,6 +547,10 @@ watch(showMenu, shown => {
   menuSlice.name = (currentHoveredSlice.id == 1) ? null : currentHoveredSlice.name
 })
 
+const documentsTitle = computed(() => {
+  return documentsFilter.orphans ? 'Orphan Documents' : ('Documents in ' + getSlicesNames(documentsFilter))
+})
+
 const noteSlices = computed(() => {
   let slices = ''
   for (let s of note.slices) {
@@ -538,31 +561,38 @@ const noteSlices = computed(() => {
   return '[' + slices + ']'
 })
 
+const getSlicesNames = (d) => {
+  let label = d.slices.length ? '' : 'Dao'
+  for (let s of d.slices) {
+    if (label !== '')
+      label += ', '
+    label += s.name
+  }
+  return label
+}
+
 const newEditNote = (edit, inSlice) => {
-  noteDialogTitle.value = edit ? ('Edit ' + note.name + ' Note') : ('New Note')
+  let inSlices = ''
   if (!edit) {
     if (!inSlice)
-      inSlice = menuSlice
-    let s = {
-      name: inSlice.name ? inSlice.name : 'Dao',
-      id: inSlice.id ? inSlice.id : '1'
-    }
-    noteDialogTitle.value += ' in ' + s.name
+      inSlice = {
+        slices: [menuSlice]
+      }
+    inSlices = getSlicesNames(inSlice)
     Object.assign(note, getNoteInitial())
-    note.slices.push(s)
+    note.slices = inSlice.slices
   } else {
-    let inSlices
-    for (let s of inSlice.slices) {
-      if (!inSlices)
-        inSlices = '['
-      else
-        inSlices += ', '
-      inSlices += s.name
+    if (!documentsFilter.orphans) {
+      for (let s of inSlice.slices) {
+        if (inSlices != '')
+          inSlices += ', '
+        inSlices += s.name
+      }
     }
-    inSlices += ']'
-    noteDialogTitle.value += ' in ' + inSlices
     Object.assign(note, inSlice)
   }
+  noteDialogTitle.value = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + note.name + '\' Note') : ('New Note')
+  noteDialogTitle.value += (' in [' + inSlices + ']')
   showNoteDialog.value = true
   setTimeout(() => {
    noteName.value.focus()
@@ -589,6 +619,7 @@ const noteProcess = () => {
         $q.$notify(res.e)
       else {
         refreshDocuments()
+        documentsSelected.value = []
         showNoteDialog.value = false
       }
     }, note)
@@ -598,6 +629,7 @@ const noteProcess = () => {
         $q.$notify(res.e)
       else {
         refreshDocuments()
+        documentsSelected.value = []
         showNoteDialog.value = false
       }
     }, note)
@@ -657,7 +689,8 @@ const refreshSlices = (newRoot) => {
           slices.parents.push(s.parent)
        slices.customdata.push({
          parent: s.parent,
-         out_count: s.out_count
+         out_count: s.out_count,
+         description: s.description
          // doc_count: s.doc_count
        })
        slices.values.push(1)
@@ -755,9 +788,10 @@ const plotlyHover = e => {
   currentHoveredSlice = {
     name: p.label?.substr(0, p.label.lastIndexOf(' [')),
     id: p.id,
-    description: p.hovertext,
-    customdata: p.customdata,
+    description: p.customdata.description,
+    customdata: p.customdata
   }
+  delete currentHoveredSlice.customdata.description
   // console.log('*** plotlyHover c:', currentHoveredSlice, 'p:', p, "chs:", currentHoveredSlice)
 }
 
@@ -779,30 +813,15 @@ const setRootSlice = root => {
   }
 }
 
-let documentsFilter = {
-  orphans: null,
-  slices: ['1'],
-  types: null
-}
-
-const refreshDocuments = (slice) => {
-  if (slice) {
-    // if (documentsFilter.slices.indexOf(slice.id) === -1)
-    //   documentsFilter.slices.push(slice.id)
-    documentsFilter.slices = [slice.id]
-  }
+const refreshDocuments = () => {
+  let slice = documentsFilter.slices
+  logger.trace('refreshDocuments: ' + logger.json(slice))
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
       $q.$notify(res.e)
     else {
       // console.log('GetDocuments:', res.d)
       documentRows.value = res.d
-      let label = (slice?.name ? slice.name : 'Dao')
-      Object.assign(documentsTitle, {
-        label: 'Documents in ' + label + ' [' + res.d.length + ']',
-        name: label,
-        id: slice?.id ? slice?.id : '1'
-      })
     }
   }, documentsFilter)
 }
@@ -823,8 +842,10 @@ const plotlyClick = e => {
       }, {
         newParent: { id: p.id }
       })
-    } else
-        refreshDocuments(currentHoveredSlice)
+    } else {
+        // refreshDocuments(currentHoveredSlice)
+        documentsFilter.slices = [currentHoveredSlice]
+      }
     return false
   } else { // usual click
       // logger.error('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))

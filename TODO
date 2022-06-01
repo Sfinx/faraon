@@ -1,10 +1,8 @@
 
  - add document viewer
- - implement orphans
  - documents CRUD
 	- note
-	  - add slice/docs editor/browser
-	  - encrypted
+	  - add small slice/docs editor/browser
 	- todo
 	- event
 	  - y/m/d h:m:s
@@ -13,7 +11,7 @@
 	    - send to telegram
 	- persons
 	  - create & attach birthday event
-	- know how
+	- know how / knowledge
 	- file
 	  - types
 	    - ebook/sound/image
@@ -31,8 +29,15 @@
 misc:
 
  - add slices & documents search
+ - create the single modal component for trimSliceDialog/deleteSliceDialog/deleteDocumentDialog
+	$q.dialog({ title: t, prompt: p, okCb: () => {
+	})
  - transact edit/delete operations
  - create full SelectSlice component
  - create full SelectDoc component
  - add voice search (read the book)
  - add div zoom by scroll/pan event
+ - add encrypted notes
+ - implement basic agents:
+   - watcher
+   - harvester
