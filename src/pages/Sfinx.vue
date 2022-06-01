@@ -507,7 +507,7 @@ const showSliceSelection = () => showSliceSelectionDialog.value = true
 
 const plotlyAfterPlot = () => {
   if (plotlyData.value[0].level != selectedSliceId) {
-    // logger.error('plotlyAfterPlot: ' + plotlyData.value[0].level + ', selectedSliceId: ' + selectedSliceId)
+    // logger.trace('plotlyAfterPlot: ' + plotlyData.value[0].level + ', selectedSliceId: ' + selectedSliceId)
     setRootSlice(selectedSliceId)
   }
 }
@@ -520,16 +520,17 @@ const onResize = () => {
   plotlyRedraw.value++
 }
 
-let documentsFilter = reactive({
-  orphans: false,
-  slices: [{ id: '1' }], // array of slice objects
-  types: null
-})
+const getDocumentsFilterDefault = () => {
+  return {
+    orphans: false,
+    types: null,
+    slices: [{ name: 'Dao', id: '1' }]
+    }
+}
 
-watch(documentsFilter, () => {
-  logger.trace('refreshDocuments: watch')
-  refreshDocuments()
-})
+let documentsFilter = reactive(getDocumentsFilterDefault())
+
+watch(documentsFilter, () => refreshDocuments())
 
 watch(showMenu, shown => {
   if (!shown)
@@ -659,7 +660,7 @@ const sliceProcess = () => {
 }
 
 const refreshSlices = (newRoot) => {
-  // logger.error('refreshSlices: selectedSliceId :' + selectedSliceId + ', newRoot: ' + newRoot)
+  // logger.trace('refreshSlices: selectedSliceId :' + selectedSliceId + ', newRoot: ' + newRoot)
   let level = (selectedSliceId == '1' ? undefined : selectedSliceId)
   if (newRoot) { // move back
     level = (newRoot == 1 ? undefined : selectedSliceId) // set to old root for now
@@ -807,7 +808,6 @@ let dataRoot
 const setRootSlice = root => {
   if (root == '')
     root = '1'
-  // logger.error('setRootSlice: ' + root)
   if (plotlyData.value) {
     plotlyData.value = [{ ...plotlyData.value[0], ...{ level: root } }]
   }
@@ -815,7 +815,7 @@ const setRootSlice = root => {
 
 const refreshDocuments = () => {
   let slice = documentsFilter.slices
-  logger.trace('refreshDocuments: ' + logger.json(slice))
+  // logger.trace('refreshDocuments: ' + logger.json(slice))
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
       $q.$notify(res.e)
@@ -829,7 +829,7 @@ const refreshDocuments = () => {
 const plotlyClick = e => {
   let p = e.points[0]
   if (keyModifier == 'Shift') {
-    // logger.info('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
+    // logger.trace('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
     if ($q.$store.movingSlice) {
       sfinx.sendMsg('SliceMoveMode', res => {
       if (res.e)
@@ -848,16 +848,16 @@ const plotlyClick = e => {
       }
     return false
   } else { // usual click
-      // logger.error('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))
+      // logger.trace('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))
       selectedSliceId =  currentHoveredSlice.id
       if (selectedSliceId != '1') {
         if (selectedSliceId == dataRoot) { // back to parent
-          // logger.error('Back to parent: ' + currentHoveredSlice.customdata.parent)
+          // logger.trace('Back to parent: ' + currentHoveredSlice.customdata.parent)
           refreshSlices(currentHoveredSlice.customdata.parent)
           return false
         }
         if (currentHoveredSlice.customdata.out_count) { // move forward by DB
-          // logger.error('Move forward')
+          // logger.trace('Move forward')
           refreshSlices()
           return false
        }
@@ -917,12 +917,14 @@ onMounted(() => {
   refreshSlices()
   refreshDocuments()
   emitter.on('ReturnToDao', () => {
-    // logger.error('Return to Dao from ' + dataRoot)
+    // logger.trace('Return to Dao from ' + dataRoot)
     if (dataRoot != '1')
       refreshSlices('1')
-    else
+    else {
+      Object.assign(documentsFilter, getDocumentsFilterDefault())
       setRootSlice()
-    // refreshDocuments({ name: 'Dao', id: '1' })
+      refreshDocuments()
+    }
   })
 })
 
