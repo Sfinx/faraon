@@ -100,8 +100,16 @@
                 <q-list style="min-width: 120px">
                   <q-item>
                     <div class="column">
-                      <q-toggle v-close-popup v-model="documentsAllSelect" @click="documentsTypeSelect" label="All Documents" />
-                      <q-toggle v-close-popup v-model="documentsOrphansSelect" @click="documentsTypeSelect" label="Orphans only" />
+                      <q-toggle v-close-popup v-model="documentsSelect.all" @click="documentsTypeSelect" label="All Documents" />
+                      <q-toggle v-close-popup v-model="documentsSelect.orphans" @click="documentsTypeSelect" label="Orphans only" />
+                      <q-separator />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.note" @click="documentsTypeSelect" label="Notes" />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.file" @click="documentsTypeSelect" label="Files" />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.event" @click="documentsTypeSelect" label="Events" />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.person" @click="documentsTypeSelect" label="Persons" />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.knowhow" @click="documentsTypeSelect" label="KnowHows" />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.todo" @click="documentsTypeSelect" label="ToDos" />
+                      <q-toggle v-close-popup v-model="documentsSelect.types.aim" @click="documentsTypeSelect" label="Aims" />
                     </div>
                   </q-item>
                 </q-list>
@@ -290,8 +298,9 @@ import selectSlice from 'components/SelectSlice.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
 
-const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
 const $q = useQuasar()
+
+const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
 
 const deleteConfirmDialog = ref(false)
 const deleteConfirmTitle = ref('')
@@ -506,31 +515,47 @@ const getDocumentsFilterDefault = () => {
   return {
     orphans: false,
     all: false,
-    types: null,
+    types: [],
     slices: [{ name: 'Dao', id: '1' }]
     }
 }
 
 let documentsFilter = reactive(getDocumentsFilterDefault())
 
-const documentsAllSelect = ref(false)
+const documentsSelect = reactive({
+  all: false,
+  orphans: false,
+  types: {
+    note: false,
+    file: false,
+    event: false,
+    person: false,
+    knowhow: false,
+    todo: false,
+    aim: false
+  }
+})
+
 const documentsOrphansSelect = ref(false)
 
 const documentsTypeSelect = () => {
   setTimeout(() => {
-    Object.assign(documentsFilter, documentsFilter, { all: documentsAllSelect.value, orphans: documentsOrphansSelect.value })
+    let types = []
+    for (const [key, value] of Object.entries(documentsSelect.types)) {
+      if (value == true)
+        types.push(key)
+    }
+    Object.assign(documentsFilter, documentsFilter, { all: documentsSelect.all, orphans: documentsSelect.orphans, types })
   }, 10)
 }
 
-watch(documentsAllSelect, (n) => {
-  if (n)
-    documentsOrphansSelect.value = false
+watch(documentsSelect, (d) => {
+  if (d.all)
+    documentsSelect.orphans = false
+    if (d.orphans)
+      documentsSelect.all = false
 })
 
-watch(documentsOrphansSelect, (n) => {
-  if (n)
-    documentsAllSelect.value = false
-})
 
 watch(documentsFilter, (n) => refreshDocuments())
 
@@ -551,7 +576,7 @@ watch(showMenu, shown => {
 })
 
 const documentsTitle = computed(() => {
-  return documentsFilter.orphans ? 'Orphan Documents' : ('Documents in ' + getSlicesNames(documentsFilter))
+  return documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in ' + getSlicesNames(documentsFilter)))
 })
 
 const noteSlices = computed(() => {
