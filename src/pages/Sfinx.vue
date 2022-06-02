@@ -99,7 +99,10 @@
               <q-menu>
                 <q-list style="min-width: 120px">
                   <q-item>
-                    <q-toggle v-close-popup v-model="documentsFilter.orphans" label="Orphans only" />
+                    <div class="column">
+                      <q-toggle v-close-popup v-model="documentsAllSelect" @click="documentsTypeSelect" label="All Documents" />
+                      <q-toggle v-close-popup v-model="documentsOrphansSelect" @click="documentsTypeSelect" label="Orphans only" />
+                    </div>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -388,8 +391,6 @@ const getDocumentType = (v) => {
 }
 const getDocumentSelectedString = () => documentsSelected.value.length === 0 ? '' : `${documentsSelected.value.length} record${documentsSelected.value.length > 1 ? 's' : ''} selected of ${documentRows.value.length}`
 
-// TODO: bug with ctrl deselection
-
 const onDocumentSelection = ({ rows, added, evt }) => {
 
   if (rows.length === 0 || documentsTable.value === void 0)
@@ -504,6 +505,7 @@ const onResize = () => {
 const getDocumentsFilterDefault = () => {
   return {
     orphans: false,
+    all: false,
     types: null,
     slices: [{ name: 'Dao', id: '1' }]
     }
@@ -511,7 +513,26 @@ const getDocumentsFilterDefault = () => {
 
 let documentsFilter = reactive(getDocumentsFilterDefault())
 
-watch(documentsFilter, () => refreshDocuments())
+const documentsAllSelect = ref(false)
+const documentsOrphansSelect = ref(false)
+
+const documentsTypeSelect = () => {
+  setTimeout(() => {
+    Object.assign(documentsFilter, documentsFilter, { all: documentsAllSelect.value, orphans: documentsOrphansSelect.value })
+  }, 10)
+}
+
+watch(documentsAllSelect, (n) => {
+  if (n)
+    documentsOrphansSelect.value = false
+})
+
+watch(documentsOrphansSelect, (n) => {
+  if (n)
+    documentsAllSelect.value = false
+})
+
+watch(documentsFilter, (n) => refreshDocuments())
 
 watch(showMenu, shown => {
   if (!shown)
