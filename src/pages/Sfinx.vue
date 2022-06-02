@@ -96,7 +96,7 @@
         <q-card-actions align="between">
           <div>
             <q-btn class="dense bg-secondary text-white" glossy label="Filter"> <!-- by slices / by type / orphans only -->
-              <q-menu>
+              <q-menu style="user-select: none;">
                 <q-list style="min-width: 120px">
                   <q-item>
                     <div class="column">
@@ -119,6 +119,7 @@
                                 <q-toggle v-close-popup v-model="documentsSelect.types.knowhow" @click="documentsTypeSelect" label="KnowHows" />
                                 <q-toggle v-close-popup v-model="documentsSelect.types.todo" @click="documentsTypeSelect" label="ToDos" />
                                 <q-toggle v-close-popup v-model="documentsSelect.types.aim" @click="documentsTypeSelect" label="Aims" />
+                                <q-item v-close-popup style="user-select: none;" @click="documentsAllTypes" clickable>All types</q-item>
                               </div>
                             </q-item>
                           </q-list>
@@ -569,6 +570,19 @@ watch(() => ({ ...documentsSelect }), (d, dprev) => {
     Object.assign(documentsSelect, documentsSelect, {all : false, orphans: true })
 })
 
+const documentsAllTypes = () => {
+  let types = {}
+  let assign = false
+  for (const [key, value] of Object.entries(documentsSelect.types)) {
+    if (value)
+      assign = true
+    types[key] = false
+  }
+  if (assign) {
+    Object.assign(documentsSelect, documentsSelect, { types })
+    documentsTypeSelect()
+  }
+}
 
 watch(documentsFilter, (n) => refreshDocuments())
 
