@@ -2,7 +2,6 @@
  - add document viewer
  - add small slice/docs editor/browser (use multi Select)
  - documents CRUD
-	- note
 	- event
 	  - y/m/d h:m:s
 	  - trigger: none/once/periodic
@@ -37,3 +36,4 @@ misc:
  - implement basic AI agents:
    - watcher
    - harvester
+ - add static colors to slices

@@ -512,9 +512,9 @@ const sliceSelected = slice => {
 const showSliceSelection = () => showSliceSelectionDialog.value = true
 
 const plotlyAfterPlot = () => {
-  if (plotlyData.value[0].level != selectedSliceId) {
-    // logger.trace('plotlyAfterPlot: ' + plotlyData.value[0].level + ', selectedSliceId: ' + selectedSliceId)
-    setRootSlice(selectedSliceId)
+  // logger.trace('plotlyAfterPlot: ' + plotlyData.value[0].level + ', selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot)
+  if (plotlyData.value[0].level != dataRoot) {
+    setRootSlice(dataRoot)
   }
 }
 
@@ -835,14 +835,15 @@ const rightClick = ev => {
 
 const plotlyHover = e => {
   let p = e.points[0]
+  console.log('*** plotlyHover p: ', p)
   currentHoveredSlice = {
     name: p.label?.substr(0, p.label.lastIndexOf(sliceSeparator)),
     id: p.id,
     description: p.customdata.description,
     customdata: p.customdata
   }
+  // logger.trace('*** plotlyHover currentHoveredSlice: ' + logger.json(currentHoveredSlice))
   delete currentHoveredSlice.customdata.description
-  // console.log('*** plotlyHover c:', currentHoveredSlice, 'p:', p, "chs:", currentHoveredSlice)
 }
 
 const plotlyUnHover = e => {
@@ -855,6 +856,7 @@ let dataRoot
 
 // plotlyData is array so the only way to trigger change is to assign to it
 const setRootSlice = root => {
+  // logger.trace('setRootSlice: ' + logger.json(root))
   if (root == '')
     root = '1'
   if (plotlyData.value) {

@@ -20,7 +20,7 @@ Sfinx consist of the cloud and UI part, last is named **Faraon**.
 
 This project is my hobby so do not expect the fast releases.
 
-Cloud backend code is not available in source form for now.
+Cloud backend code is not available in source form for now. The limited set of test accounts will be available after v0.1.0 release though
 
 Usage
 -----
