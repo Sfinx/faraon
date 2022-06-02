@@ -1,8 +1,8 @@
 
  - add document viewer
+ - add small slice/docs editor/browser (use multi Select)
  - documents CRUD
 	- note
-	  - add small slice/docs editor/browser (use multi Select)
 	- event
 	  - y/m/d h:m:s
 	  - trigger: none/once/periodic
@@ -20,11 +20,10 @@
 	- todo
 	- aim
 
- - add possibility to attach one document to other
+  - add possibility to attach one document to other
 	- attach can be two way (inbound & outbound)
 	- add selection cb to document viewer
-	- add small slices browser
-	- add small attached docs browser
+
 misc:
 
  - add slices & documents search
@@ -34,6 +33,7 @@ misc:
  - add voice search (read the book)
  - add div zoom by scroll/pan event
  - add encrypted notes
- - implement basic agents:
+ - user defined fields for documents
+ - implement basic AI agents:
    - watcher
    - harvester
