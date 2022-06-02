@@ -103,13 +103,27 @@
                       <q-toggle v-close-popup v-model="documentsSelect.all" @click="documentsTypeSelect" label="All Documents" />
                       <q-toggle v-close-popup v-model="documentsSelect.orphans" @click="documentsTypeSelect" label="Orphans only" />
                       <q-separator />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.note" @click="documentsTypeSelect" label="Notes" />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.file" @click="documentsTypeSelect" label="Files" />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.event" @click="documentsTypeSelect" label="Events" />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.person" @click="documentsTypeSelect" label="Persons" />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.knowhow" @click="documentsTypeSelect" label="KnowHows" />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.todo" @click="documentsTypeSelect" label="ToDos" />
-                      <q-toggle v-close-popup v-model="documentsSelect.types.aim" @click="documentsTypeSelect" label="Aims" />
+                      <q-item clickable>
+                        <q-item-section>By Type</q-item-section>
+                        <q-item-section side>
+                          <q-icon name="keyboard_arrow_right" />
+                        </q-item-section>
+                        <q-menu>
+                          <q-list style="min-width: 120px">
+                            <q-item>
+                              <div class="column">
+                                <q-toggle v-close-popup v-model="documentsSelect.types.note" @click="documentsTypeSelect" label="Notes" />
+                                <q-toggle v-close-popup v-model="documentsSelect.types.file" @click="documentsTypeSelect" label="Files" />
+                                <q-toggle v-close-popup v-model="documentsSelect.types.event" @click="documentsTypeSelect" label="Events" />
+                                <q-toggle v-close-popup v-model="documentsSelect.types.person" @click="documentsTypeSelect" label="Persons" />
+                                <q-toggle v-close-popup v-model="documentsSelect.types.knowhow" @click="documentsTypeSelect" label="KnowHows" />
+                                <q-toggle v-close-popup v-model="documentsSelect.types.todo" @click="documentsTypeSelect" label="ToDos" />
+                                <q-toggle v-close-popup v-model="documentsSelect.types.aim" @click="documentsTypeSelect" label="Aims" />
+                              </div>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-item>
                     </div>
                   </q-item>
                 </q-list>
@@ -536,8 +550,7 @@ const documentsSelect = reactive({
   }
 })
 
-const documentsOrphansSelect = ref(false)
-
+// click event
 const documentsTypeSelect = () => {
   setTimeout(() => {
     let types = []
@@ -549,11 +562,11 @@ const documentsTypeSelect = () => {
   }, 10)
 }
 
-watch(documentsSelect, (d) => {
+watch(() => ({ ...documentsSelect }), (d, dprev) => {
   if (d.all)
-    documentsSelect.orphans = false
-    if (d.orphans)
-      documentsSelect.all = false
+    Object.assign(documentsSelect, documentsSelect, {all : true, orphans: false })
+  if (d.orphans)
+    Object.assign(documentsSelect, documentsSelect, {all : false, orphans: true })
 })
 
 
