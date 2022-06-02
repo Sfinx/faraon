@@ -25,5 +25,5 @@ envinfo:
 i:
 	@yarn cache clean; rm -rf node_modules; rm yarn.lock; yarn
 
-push:
-	@COMMITTER='Sfinx' COMMITTER_EMAIL=github@sfinx.in GIT_AUTHOR_EMAIL=github@sfinx.in GIT_AUTHOR_NAME='Sfinx' GIT_COMMITTER_EMAIL=github@sfinx.in GIT_COMMITTER_NAME='Sfinx' git push
+commit:
+	@COMMITTER='Sfinx' COMMITTER_EMAIL=github@sfinx.in GIT_AUTHOR_EMAIL=github@sfinx.in GIT_AUTHOR_NAME='Sfinx' GIT_COMMITTER_EMAIL=github@sfinx.in GIT_COMMITTER_NAME='Sfinx' git commit -a
