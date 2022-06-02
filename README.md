@@ -18,4 +18,23 @@ Sfinx consist of the cloud and UI part, last is named **Faraon**.
 - informational/recommendation/social distributed networks based at the exposed knowledges of the people with extracted semantic
 - serve as base Sfinx API example for building third-party applications
 
-The project is at the early alpha stage so do not expect the fast releases.
+This project is my hobby so do not expect the fast releases.
+
+Cloud backend code is not available in source form for now.
+
+Usage
+-----
+
+dev [ http://localhost:9000/ ] :
+
+```
+yarn
+make d
+```
+
+prod:
+
+```
+yarn
+make b
+```

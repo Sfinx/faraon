@@ -26,8 +26,8 @@
     "@quasar/app-vite": "^1.0.1",
     "autoprefixer": "^10.4.7",
     "postcss": "^8.4.14",
-    "rollup": "^2.75.4",
-    "unocss": "^0.37.1",
+    "rollup": "^2.75.5",
+    "unocss": "^0.37.2",
     "vite": "^2.9.9"
   },
   "engines": {
