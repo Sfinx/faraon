@@ -256,7 +256,18 @@
               verdana: 'Verdana'
             }"
           />
-          <span style="cursor: pointer;" @click="showSliceSelection()" >Slices: {{ noteSlices }}</span>
+          <div @click="showSliceSelection()">
+            <q-select
+              filled
+              v-model="note.slices"
+              option-label="name"
+              multiple
+              dense
+              use-chips
+              stack-label
+              label="Slices"
+            />
+          </div>
           </form>
         </q-card-section>
         <q-card-actions align="between">
@@ -312,6 +323,7 @@ import plotly from 'components/Plotly.vue'
 import selectSlice from 'components/SelectSlice.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
+import { app } from '@/boot/app.js'
 
 const $q = useQuasar()
 
@@ -498,12 +510,11 @@ const sliceName = ref(null)
 const sliceDescription = ref(null)
 const plotlyRedraw = ref(true)
 
-const noteClearSlices = () => note.slices.length = 1
+const noteClearSlices = () => note.slices.length = 0
 
-const sliceSeparator = '|'
 const sliceSelected = slice => {
   note.slices.push({
-    name: slice.label.substr(0, slice.label.lastIndexOf(sliceSeparator)),
+    name: slice.label.substr(0, slice.label.lastIndexOf(sfinx.sliceSeparator)),
     id: slice.id
   })
   showSliceSelectionDialog.value = false
@@ -604,16 +615,6 @@ watch(showMenu, shown => {
 
 const documentsTitle = computed(() => {
   return documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in ' + getSlicesNames(documentsFilter)))
-})
-
-const noteSlices = computed(() => {
-  let slices = ''
-  for (let s of note.slices) {
-    if (slices.length)
-      slices += ', '
-    slices += '\'' + s.name + '\''
-  }
-  return '[' + slices + ']'
 })
 
 const getSlicesNames = (d) => {
@@ -732,7 +733,7 @@ const refreshSlices = (newRoot) => {
        values: []
      }
      for (let s of res.d.slices) {
-       let name = s.name + sliceSeparator + s.out_count
+       let name = s.name + sfinx.sliceSeparator + s.out_count
        slices.labels.push(name)
        slices.hovertext.push(s.name + (s.description ? (' (' + s.description + ')') : ''))
        slices.ids.push(s.key)
@@ -836,7 +837,7 @@ const rightClick = ev => {
 const plotlyHover = e => {
   let p = e.points[0]
   currentHoveredSlice = {
-    name: p.label?.substr(0, p.label.lastIndexOf(sliceSeparator)),
+    name: p.label?.substr(0, p.label.lastIndexOf(sfinx.sliceSeparator)),
     id: p.id,
     description: p.customdata.description,
     customdata: p.customdata

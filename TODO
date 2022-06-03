@@ -1,6 +1,5 @@
 
  - add document viewer
- - add small slice/docs editor/browser (use multi Select)
  - documents CRUD
 	- event
 	  - y/m/d h:m:s
@@ -37,3 +36,4 @@ misc:
    - watcher
    - harvester
  - add static colors to slices
+ - switch to https://github.com/flyween/vue3-quill

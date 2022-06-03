@@ -176,7 +176,7 @@ export default {
             values: []
           }
           for (let s of res.d.slices) {
-            slices.labels.push(s.name + ' [' + s.out_count + ']')
+            slices.labels.push(s.name + sfinx.sliceSeparator + s.out_count)
             slices.hovertext.push(s.name + (s.description ? (' (' + s.description + ')') : ''))
             slices.ids.push(s.key)
             if (!slices.parents.length) {
