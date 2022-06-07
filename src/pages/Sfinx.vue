@@ -531,8 +531,16 @@ const plotlyRedraw = ref(true)
 const noteClearSlices = () => note.slices.length = 0
 
 const sliceSelected = slice => {
+  let name = slice.label.substr(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
+  // no sense to have several instances of the same slice
+  for (let s of note.slices) {
+    if (s.id == slice.id) {
+      $q.notify('Slice \'' + name + '\' already assigned')
+      return
+    }
+  }
   note.slices.push({
-    name: slice.label.substr(0, slice.label.lastIndexOf(sfinx.sliceSeparator)),
+    name,
     id: slice.id
   })
   showSliceSelectionDialog.value = false

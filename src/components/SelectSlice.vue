@@ -33,7 +33,6 @@ const def_options = {
   logging: 2,
   modeBarButtonsToRemove: ['toImage']
 }
-
 const defaultSunburstData = {
   type: 'sunburst', // sunburst icicle treemap
   outsidetextfont: { size: 20, color: '#377eb8' },
@@ -72,22 +71,6 @@ const props = defineProps({
 const data = ref([])
 let innerLayout = { ...props.layout }
 let selectedSliceId = '1'
-// let scheduled = null
-// let dataRoot = null
-
-const onResize = () => Plotly.Plots.resize(plotly.value)
-
-onMounted(() => {
-  window.addEventListener('keydown', keyDown)
-  window.addEventListener('keyup', keyUp)
-  init()
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', keyDown)
-  window.removeEventListener('keyup', keyDown)
-  deinit()
-})
 
 const options = computed(() => {
   const optionsFromAttrs = Object.keys(attrs).reduce((acc, key) => {
@@ -105,12 +88,7 @@ const init = (reinit) => {
   let context = {
     select,
     $emit: {
-      apply: (ctx, args) => {
-        // if (args[0] == 'afterplot')
-        //   afterplot()
-        // else
-        //   console.log('*********** Not implemented: apply', ctx, args)
-      }
+      apply: (ctx, args) => { }
     }
   }
   events.forEach(evt => plotly.value.on(evt.completeName, evt.handler(context)))
@@ -119,18 +97,39 @@ const init = (reinit) => {
   }
 }
 
-const select = (s) => {
+let dataRoot
+
+const select = (e) => {
+  let p = e?.points??[0]
+  if (!p)
+    return true
   if (keyModifier == 'Shift') {
-    props.selected(s.points[0])
+    props.selected(p)
     return false
+  } else {
+    // console.log('click: selectedSliceId: ', p, ', dataRoot: ', dataRoot)
+    selectedSliceId =  p[0].id
+    if (selectedSliceId != '1') {
+      if (selectedSliceId == dataRoot) { // back to parent
+        // logger.trace('Back to parent: ' + p[0].customdata.parent)
+        refresh(p[0].customdata.parent)
+        return false
+      }
+      if (p[0].customdata.out_count) { // move forward by DB
+        // logger.trace('Move forward')
+        refresh()
+        return false
+     }
+    }
   }
+  return true
 }
 
 const refresh = (newRoot) => {
   // logger.trace('refresh: selectedSliceId :' + selectedSliceId + ', newRoot: ' + newRoot)
   let level = (selectedSliceId == '1' ? undefined : selectedSliceId)
   if (newRoot) { // move back
-    level = (newRoot == 1 ? undefined : selectedSliceId) // set to old root for now
+    level = (newRoot == '1' ? undefined : selectedSliceId) // set to old root for now
     selectedSliceId = newRoot
   }
   sfinx.sendMsg('GetSlices', res => {
@@ -151,7 +150,7 @@ const refresh = (newRoot) => {
         slices.ids.push(s.key)
         if (!slices.parents.length) {
           slices.parents.push('')
-          // dataRoot = s.key
+          dataRoot = s.key
         } else
            slices.parents.push(s.parent)
         slices.customdata.push({
@@ -160,6 +159,8 @@ const refresh = (newRoot) => {
         })
         slices.values.push(1)
       }
+      if (level && (level != selectedSliceId))
+        level = selectedSliceId
       data.value = [{ ...slices, ...defaultSunburstData, ...{ level } }]
     }
   }, {
@@ -175,18 +176,6 @@ const deinit = () => {
 
 const toDao = () => refresh('1')
 
-// const setRootSlice = (root) => {
-//   if (root == '')
-//     root = '1'
-//   if (data.value)
-//     data.value = [{ ...data.value[0], ...{ level: root } }]
-// }
-//
-// const afterplot = () => {
-//   // if (data.value??[0]?.level != selectedSliceId)
-//   //   setRootSlice(selectedSliceId)
-// }
-
 const validate = (d) => {
   let err = Plotly.validate(data.value, innerLayout)
   if (err) {
@@ -200,17 +189,6 @@ const schedule = (ctx) => {
     nextTick(() => {
       react()
     })
-  // if (scheduled)
-  //   return (scheduled.replot = scheduled.replot || context.replot)
-  // scheduled = ctx
-  // nextTick(() => {
-  //   if (scheduled.replot)
-  //     react()
-  //   else
-  //     // relayout(innerLayout)
-  //     logger.error('No implemented: relayout(innerLayout)')
-  //   scheduled = null
-  // })
 }
 
 const react = () => {
@@ -223,28 +201,21 @@ const react = () => {
   Plotly.react(plotly.value, data.value, innerLayout, { ...def_options, ...options })
 }
 
-watch(data, (d, dprev) => {
-  console.log('data watch')
-  schedule({ replot: true })
+watch(data, (d, dprev) => schedule({ replot: true }))
+watch(() => props.returnToDao, () => toDao())
+const onResize = () => Plotly.Plots.resize(plotly.value)
+
+onMounted(() => {
+  window.addEventListener('keydown', keyDown)
+  window.addEventListener('keyup', keyUp)
+  init()
 })
 
-watch(() => props.returnToDao, () => toDao())
-
-//   watch: {
-//     options: {
-//       handler(value, old) {
-//         if (JSON.stringify(value) === JSON.stringify(old)) {
-//           return
-//         }
-//         this.schedule({ replot: true })
-//       },
-//       deep: true
-//     },
-//     layout(layout) {
-//       this.innerLayout = { ...layout }
-//       this.schedule({ replot: false })
-//     },
-//   }
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', keyDown)
+  window.removeEventListener('keyup', keyDown)
+  deinit()
+})
 
 </script>
 
