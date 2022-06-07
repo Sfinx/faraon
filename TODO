@@ -1,6 +1,6 @@
 
  - add document viewer
- - documents CRUD
+ - add new documents types
 	- event
 	  - y/m/d h:m:s
 	  - trigger: none/once/periodic

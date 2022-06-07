@@ -1,7 +1,9 @@
 
+
 <template>
-  <div :id="id" v-resize:debounce.100="onResize" />
+  <div :id="id" v-resize:debounce.100="resize" />
 </template>
+
 <script>
 
 import Plotly from 'plotly.js/dist/plotly.js'
@@ -108,7 +110,7 @@ export default {
         console.log('*** Validate error:', err)
       }
     },
-    onResize() {
+    resize() {
       Plotly.Plots.resize(this.$el)
     },
     schedule(context) {

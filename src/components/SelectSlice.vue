@@ -1,8 +1,8 @@
 
 
 <template>
-  <q-resize-observer @resize="onResize" />
-  <div :id="props.id" ref="plotly" @select="select" />
+  <q-resize-observer @resize="resize" />
+  <div :id="props.id" @redraw="redraw" ref="plotly" @select="select" />
 </template>
 
 <script setup>
@@ -52,9 +52,6 @@ const props = defineProps({
   layout: {
     type: Object
   },
-  selected: {
-    type: Function
-  },
   maxDepth: {
     type: Number
   },
@@ -62,11 +59,10 @@ const props = defineProps({
     type: String,
     default: null,
     required: false
-  },
-  returnToDao: {
-    type: Number
   }
 })
+
+const emit = defineEmits(['selected'])
 
 const data = ref([])
 let innerLayout = { ...props.layout }
@@ -84,20 +80,21 @@ const options = computed(() => {
 })
 
 const init = (reinit) => {
+  // logger.trace('init: reinit: ' + reinit)
   Plotly.newPlot(plotly.value, data.value, innerLayout, { ...def_options, ...options })
+  // plotly.value.style.visibility = 'hidden'
   let context = {
     select,
     $emit: {
       apply: (ctx, args) => {
-        if ((args[0] == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
-          setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
+        // if ((args[0] == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
+        //   setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
       }
     }
   }
   events.forEach(evt => plotly.value.on(evt.completeName, evt.handler(context)))
-  if (!reinit) {
+  if (!reinit)
     setTimeout(() => refresh(), 100)
-  }
 }
 
 let dataRoot
@@ -107,7 +104,7 @@ const select = (e) => {
   if (!p)
     return true
   if (keyModifier == 'Shift') {
-    props.selected(p[0])
+    emit('selected', p[0])
     return false
   } else {
     // console.log('click: selectedSliceId: ', p, ', dataRoot: ', dataRoot)
@@ -205,13 +202,18 @@ const react = () => {
 }
 
 watch(data, (d, dprev) => schedule({ replot: true }))
-watch(() => props.returnToDao, () => toDao())
-const onResize = () => Plotly.Plots.resize(plotly.value)
+
+const resize = () => Plotly.Plots.resize(plotly.value)
+
+defineExpose({
+  toDao,
+  react,
+  resize
+})
 
 onMounted(() => {
   window.addEventListener('keydown', keyDown)
   window.addEventListener('keyup', keyUp)
-  plotly.value.style.visibility = 'hidden'
   init()
 })
 

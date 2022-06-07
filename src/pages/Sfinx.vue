@@ -52,7 +52,7 @@
           </q-item>
         </q-list>
       </q-menu>
-      <plotly v-if="plotlyData?.length > 0" :key="plotlyRedraw" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" @click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
+      <plotly v-if="plotlyData?.length > 0" ref="plotlyRef" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" @click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
     </div>
 
     <!-- documents browser -->
@@ -157,14 +157,14 @@
         </q-toolbar>
         <q-card-section class="col items-center">
           <div>
-            <selectSlice :key="plotlyRedraw" :maxDepth="maxDepth" :returnToDao="selectSliceReturnToDao" :selected="sliceSelected" :layout="selectSliceLayout"/>
-            <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceReturnToDao++" />
+            <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  @selected="sliceSelected" />
+            <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()" />
           </div>
         </q-card-section>
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showNoteDialog" persistent transition="scale">
+    <q-dialog v-model="showNewOrEditNoteDialog" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none; min-width: 80%; min-height: 80%">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ noteDialogTitle }}</q-toolbar-title>
@@ -291,7 +291,7 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showSliceDialog" persistent transition="scale">
+    <q-dialog v-model="showNewOrEditSliceDialog" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ sliceDialogTitle }}</q-toolbar-title>
@@ -339,6 +339,11 @@ import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
 import { app } from '@/boot/app.js'
 
+const selectSliceRef = ref(null)
+
+const qq = () => {
+  console.log(selectSliceRef.value.toDao)
+}
 const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
@@ -503,7 +508,7 @@ const getSliceInitial = () => {
 const selectSliceReturnToDao = ref(0)
 const showSliceSelectionDialog = ref(false)
 
-const showNoteDialog = ref(false)
+const showNewOrEditNoteDialog = ref(false)
 const noteName = ref(null)
 const noteDescription = ref(null)
 const noteDialogTitle = ref('')
@@ -521,12 +526,12 @@ let note = reactive(getNoteInitial())
 const maxDepth = 3
 const menuSlice = reactive(getSliceInitial()) // it always doing two way binding !
 const showMenu = ref(false)
-const showSliceDialog = ref(false)
+const showNewOrEditSliceDialog = ref(false)
 const sliceDialogTitle = ref('')
 // refs
 const sliceName = ref(null)
 const sliceDescription = ref(null)
-const plotlyRedraw = ref(true)
+const plotlyRef = ref(null)
 
 const noteClearSlices = () => note.slices.length = 0
 
@@ -560,7 +565,10 @@ const onResize = () => {
   plotlyLayout.height = ($q.screen.height/100) * 81
   selectSliceLayout.width = ($q.screen.width/100) * 40
   selectSliceLayout.height = ($q.screen.height/100) * 71
-  plotlyRedraw.value++
+  if (plotlyRef.value)
+    plotlyRef.value.resize()
+  if (selectSliceRef.value)
+    selectSliceRef.value.resize()
 }
 
 const getDocumentsFilterDefault = () => {
@@ -675,7 +683,7 @@ const newOrEditNote = (edit, inSlice) => {
   }
   noteDialogTitle.value = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + note.name + '\' Note') : ('New Note')
   noteDialogTitle.value += (' in [' + inSlices + ']')
-  showNoteDialog.value = true
+  showNewOrEditNoteDialog.value = true
   setTimeout(() => {
    noteName.value.focus()
   }, 50)
@@ -701,7 +709,7 @@ const noteProcess = () => {
       else {
         refreshDocuments()
         documentsSelected.value = []
-        showNoteDialog.value = false
+        showNewOrEditNoteDialog.value = false
       }
     }, note)
   } else {
@@ -711,7 +719,7 @@ const noteProcess = () => {
       else {
         refreshDocuments()
         documentsSelected.value = []
-        showNoteDialog.value = false
+        showNewOrEditNoteDialog.value = false
       }
     }, note)
   }
@@ -724,7 +732,7 @@ const sliceProcess = () => {
         $q.$notify(res.e)
       else {
         refreshSlices()
-        showSliceDialog.value = false
+        showNewOrEditSliceDialog.value = false
       }
     }, menuSlice)
   } else {
@@ -733,7 +741,7 @@ const sliceProcess = () => {
         $q.$notify(res.e)
       else {
         refreshSlices()
-        showSliceDialog.value = false
+        showNewOrEditSliceDialog.value = false
       }
     }, menuSlice)
   }
@@ -794,7 +802,7 @@ const newOrEditSlice = edit => {
     menuSlice.id = id
   } else if (menuSlice.id == '1')
           return
-  showSliceDialog.value = true
+  showNewOrEditSliceDialog.value = true
   setTimeout(() => {
    sliceName.value.focus()
   }, 50)
