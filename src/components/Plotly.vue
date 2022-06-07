@@ -1,23 +1,20 @@
 
 
 <template>
-  <div :id="id" v-resize:debounce.100="resize" />
+  <q-resize-observer @resize="resize" />
+  <div :id="id" ref="plotly" />
 </template>
 
-<script>
+<script setup>
 
 import Plotly from 'plotly.js/dist/plotly.js'
 import events from './events'
 import methods from './methods'
 import { camelize } from './helper'
-import vueResize from 'vue-resize-directive'
 import logger from '@/logger'
+import { useAttrs, ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 
-const directives = {}
-
-if (typeof window !== 'undefined')
-  directives.resize = vueResize
-
+const plotly = ref(null)
 const def_options = {
   locale: 'ru',
   displaylogo: false,
@@ -27,138 +24,106 @@ const def_options = {
   logging: 2,
   modeBarButtonsToRemove: ['toImage']
 }
+const props = defineProps({
+  data: {
+    type: Array
+  },
+  layout: {
+    type: Object
+  },
+  id: {
+    type: String,
+    required: false,
+    default: null
+  },
+    click: {
+    type: Function
+  }
+})
+
+const emitsEvents = ['afterplot', 'hover', 'unhover']
+const emit = defineEmits(['afterplot', 'hover', 'unhover'])
+
+let innerLayout = { ...props.layout }
+
+const init = (reinit) => {
+  Plotly.newPlot(plotly.value, props.data, innerLayout, { ...def_options, ...options })
+  // plotly.value.style.visibility = 'hidden'
+  let context = {
+    $emit: {
+      apply: (event, args) => {
+        if (event == 'sunburstclick')
+          return props.click(args[0])
+        if (emitsEvents.includes(event))
+          return emit(event, args[0])
+        // if ((args[0] == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
+        //   setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
+      }
+    }
+  }
+  events.forEach(evt => plotly.value.on(evt.completeName, evt.handler(context)))
+}
+
+const options = computed(() => {
+  const optionsFromAttrs = Object.keys(attrs).reduce((acc, key) => {
+    acc[camelize(key)] = attrs[key]
+    return acc
+  }, {})
+  return {
+    ...def_options,
+    ...optionsFromAttrs
+  }
+})
+
+const deinit = () => {
+  events.forEach(event => plotly.value.removeAllListeners(event.completeName))
+  Plotly.purge(plotly.value)
+}
+
+const validate = (d) => {
+  let err = Plotly.validate(props.data, innerLayout)
+  if (err) {
+    logger.error('*** Plotly.validate failed')
+    console.log('*** Validate error:', err)
+  }
+}
+
+const schedule = (ctx) => {
+  if (ctx.replot)
+    nextTick(() => {
+      react()
+    })
+}
+
+watch(() => props.data, (d, dprev) => schedule({ replot: true }))
+
+const resize = () => Plotly.Plots.resize(plotly.value)
+
+const react = () => {
+  if (props.data[0].level === undefined) {
+    props.data[0].level = '1'
+    deinit()
+    init(true)
+    return
+  }
+  Plotly.react(plotly.value, props.data, innerLayout, { ...def_options, ...options })
+}
+
+defineExpose({
+  react,
+  resize
+})
+
+onMounted(() => init())
+onBeforeUnmount(() => deinit())
+
+</script>
+
+<script>
 
 export default {
   name: 'Plotly',
-  inheritAttrs: false,
-  directives,
-  props: {
-    data: {
-      type: Array
-    },
-    layout: {
-      type: Object
-    },
-    id: {
-      type: String,
-      required: false,
-      default: null
-    }
-  },
-  data() {
-    return {
-      scheduled: null,
-      innerLayout: { ...this.layout }
-    }
-  },
-  mounted() {
-    this.init()
-  },
-  watch: {
-    data: {
-      handler() {
-        this.schedule({ replot: true })
-      },
-      deep: true
-    },
-    options: {
-      handler(value, old) {
-        if (JSON.stringify(value) === JSON.stringify(old)) {
-          return
-        }
-        this.schedule({ replot: true })
-      },
-      deep: true
-    },
-    layout(layout) {
-      this.innerLayout = { ...layout }
-      this.schedule({ replot: false })
-    }
-  },
-  computed: {
-    options() {
-      const optionsFromAttrs = Object.keys(this.$attrs).reduce((acc, key) => {
-        acc[camelize(key)] = this.$attrs[key]
-        return acc
-      }, {})
-      return {
-        ...def_options,
-        ...optionsFromAttrs
-      }
-    }
-  },
-  beforeUnmount() {
-    this.deinit()
-  },
-  methods: {
-    init() {
-      // this.validate(this.data)
-      Plotly.newPlot(this.$el, this.data, this.innerLayout, { ...def_options, ...this.options })
-      events.forEach(evt => {
-        this.$el.on(evt.completeName, evt.handler(this))
-      })
-    },
-    deinit() {
-      events.forEach(event => this.$el.removeAllListeners(event.completeName))
-      Plotly.purge(this.$el)
-    },
-    ...methods,
-    validate(d) {
-      let err = Plotly.validate(this.data, this.innerLayout)
-      if (err) {
-        logger.error('*** Plotly.validate failed')
-        console.log('*** Validate error:', err)
-      }
-    },
-    resize() {
-      Plotly.Plots.resize(this.$el)
-    },
-    schedule(context) {
-      const { scheduled } = this
-      if (scheduled) {
-        scheduled.replot = scheduled.replot || context.replot
-        return
-      }
-      this.scheduled = context
-      this.$nextTick(() => {
-        const {
-          scheduled: { replot }
-        } = this
-        this.scheduled = null
-        if (replot) {
-          this.react()
-          return
-        }
-        this.relayout(this.innerLayout)
-      })
-    },
-    toImage(options) {
-      const allOptions = Object.assign(this.getPrintOptions(), options)
-      return Plotly.toImage(this.$el, allOptions)
-    },
-    downloadImage(options) {
-      const filename = `plot--${new Date().toISOString()}`
-      const allOptions = Object.assign(this.getPrintOptions(), { filename }, options)
-      return Plotly.downloadImage(this.$el, allOptions)
-    },
-    getPrintOptions() {
-      const { $el } = this
-      return {
-        format: 'png',
-        width: $el.clientWidth,
-        height: $el.clientHeight
-      }
-    },
-    react() {
-      if (this.data[0].level === undefined) {
-        this.data[0].level = '1'
-        this.deinit()
-        this.init()
-        return
-      }
-      // this.validate(this.data)
-      Plotly.react(this.$el, this.data, this.innerLayout, { ...def_options, ...this.options })
-    }
-  }
+  inheritAttrs: false
 }
+
 </script>

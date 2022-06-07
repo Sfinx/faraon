@@ -52,7 +52,7 @@
           </q-item>
         </q-list>
       </q-menu>
-      <plotly v-if="plotlyData?.length > 0" ref="plotlyRef" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" @click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
+      <plotly v-if="plotlyData?.length > 0" ref="plotlyRef" @afterplot="plotlyAfterPlot" @hover="plotlyHover" @unhover="plotlyUnHover" :click="plotlyClick" :data="plotlyData" :layout="plotlyLayout"></plotly>
     </div>
 
     <!-- documents browser -->
@@ -157,7 +157,7 @@
         </q-toolbar>
         <q-card-section class="col items-center">
           <div>
-            <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  @selected="sliceSelected" />
+            <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected" />
             <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()" />
           </div>
         </q-card-section>
@@ -341,9 +341,6 @@ import { app } from '@/boot/app.js'
 
 const selectSliceRef = ref(null)
 
-const qq = () => {
-  console.log(selectSliceRef.value.toDao)
-}
 const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
@@ -912,6 +909,7 @@ const refreshDocuments = () => {
 }
 
 const plotlyClick = e => {
+  // console.log('plotlyClick', e)
   let p = e.points[0]
   documentsSelected.value = []
   if (keyModifier == 'Shift') {
@@ -928,10 +926,8 @@ const plotlyClick = e => {
       }, {
         newParent: { id: p.id }
       })
-    } else {
-        // refreshDocuments(currentHoveredSlice)
+    } else // no slice move
         documentsFilter.slices = [currentHoveredSlice]
-      }
     return false
   } else { // usual click
       // logger.trace('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))

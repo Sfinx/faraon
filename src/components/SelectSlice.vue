@@ -59,10 +59,13 @@ const props = defineProps({
     type: String,
     default: null,
     required: false
+  },
+  selected: {
+    type: Function
   }
 })
 
-const emit = defineEmits(['selected'])
+// const emit = defineEmits(['selected'])
 
 const data = ref([])
 let innerLayout = { ...props.layout }
@@ -84,10 +87,11 @@ const init = (reinit) => {
   Plotly.newPlot(plotly.value, data.value, innerLayout, { ...def_options, ...options })
   // plotly.value.style.visibility = 'hidden'
   let context = {
-    select,
     $emit: {
-      apply: (ctx, args) => {
-        // if ((args[0] == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
+      apply: (event, args) => {
+        if (event == 'sunburstclick')
+          return select(args[0])
+        // if ((event == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
         //   setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
       }
     }
@@ -104,8 +108,8 @@ const select = (e) => {
   if (!p)
     return true
   if (keyModifier == 'Shift') {
-    emit('selected', p[0])
-    return false
+    // emit('selected', p[0])
+    return props.selected(p[0])
   } else {
     // console.log('click: selectedSliceId: ', p, ', dataRoot: ', dataRoot)
     selectedSliceId =  p[0].id
@@ -169,9 +173,10 @@ const refresh = (newRoot) => {
   })
 }
 
-const deinit = () => {
+const deinit = (umounted) => {
   events.forEach(event => plotly.value.removeAllListeners(event.completeName))
-  Plotly.purge(plotly.value)
+  if (!umounted)
+    Plotly.purge(plotly.value)
 }
 
 const toDao = () => refresh('1')
@@ -190,6 +195,11 @@ const schedule = (ctx) => {
       react()
     })
 }
+
+// Plotly.react
+// Plotly.restyle
+// Plotly.relayout
+// Plotly.update
 
 const react = () => {
   if (data.value[0].level === undefined) {
@@ -220,7 +230,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', keyDown)
   window.removeEventListener('keyup', keyDown)
-  deinit()
+  deinit(true)
 })
 
 </script>

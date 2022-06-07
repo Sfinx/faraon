@@ -34,15 +34,7 @@ const eventsName = [
     .map(evt => evt.toLocaleLowerCase())
     .map(eventName => ({
       completeName: 'plotly_' + eventName,
-      handler: context => (...args) => {
-        // console.log('****** event:', eventName)
-        // console.dir(context)
-        if (context.select && (eventName == 'sunburstclick'))
-          return context.select(args[0])
-        if (eventName == 'sunburstclick' && context.options.onClick)
-          return context.options.onClick(args[0])
-        context.$emit.apply(context, [eventName, ...args])
-      }
+      handler: context => (...args) => context.$emit.apply(eventName, args)
     }))
 
   export default events
