@@ -905,6 +905,7 @@ const refreshDocuments = () => {
 
 const plotlyClick = e => {
   let p = e.points[0]
+  documentsSelected.value = []
   if (keyModifier == 'Shift') {
     // logger.trace('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
     if ($q.$store.movingSlice) {

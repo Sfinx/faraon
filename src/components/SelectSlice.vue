@@ -88,7 +88,10 @@ const init = (reinit) => {
   let context = {
     select,
     $emit: {
-      apply: (ctx, args) => { }
+      apply: (ctx, args) => {
+        if ((args[0] == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
+          setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
+      }
     }
   }
   events.forEach(evt => plotly.value.on(evt.completeName, evt.handler(context)))
@@ -104,7 +107,7 @@ const select = (e) => {
   if (!p)
     return true
   if (keyModifier == 'Shift') {
-    props.selected(p)
+    props.selected(p[0])
     return false
   } else {
     // console.log('click: selectedSliceId: ', p, ', dataRoot: ', dataRoot)
@@ -208,6 +211,7 @@ const onResize = () => Plotly.Plots.resize(plotly.value)
 onMounted(() => {
   window.addEventListener('keydown', keyDown)
   window.addEventListener('keyup', keyUp)
+  plotly.value.style.visibility = 'hidden'
   init()
 })
 
