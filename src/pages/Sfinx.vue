@@ -260,13 +260,27 @@
             <q-select
               filled
               v-model="note.slices"
-              option-label="name"
               multiple
               dense
               use-chips
               stack-label
               label="Slices"
-            />
+            >
+              <template v-slot:selected-item="scope">
+                <q-chip
+                  removable
+                  dense
+                  @mouseenter="showFullSlicePath(scope.opt)"
+                  @remove="scope.removeAtIndex(scope.index)"
+                  :tabindex="scope.tabindex"
+                  class="q-mr-xs"
+                >
+                <!-- color="white"
+                text-color="secondary" -->
+                  {{ scope.opt.name }}
+                </q-chip>
+              </template>
+            </q-select>
           </div>
           </form>
         </q-card-section>
@@ -333,6 +347,10 @@ const deleteConfirmDialog = ref(false)
 const deleteConfirmTitle = ref('')
 const deleteConfirmText = ref('')
 let deleteConfirmCb = reactive({})
+
+const showFullSlicePath = (e) => {
+  // console.log('showFullSlicePath', e)
+}
 
 const deleteConfirmOk = (ev) => {
   deleteConfirmCb()
@@ -574,7 +592,7 @@ const documentsTypeSelect = () => {
   }, 10)
 }
 
-watch(() => ({ ...documentsSelect }), (d, dprev) => {
+watch(documentsSelect, (d, dprev) => {
   if (d.all)
     Object.assign(documentsSelect, documentsSelect, {all : true, orphans: false })
   if (d.orphans)
