@@ -2,7 +2,7 @@
 
 <template>
   <q-resize-observer @resize="resize" />
-  <div :id="props.id" @redraw="redraw" ref="plotly" @select="select" />
+  <div :id="props.id" @redraw="redraw" ref="plotly" @select="select" style="visibility: hidden" />
 </template>
 
 <script setup>
@@ -85,14 +85,13 @@ const options = computed(() => {
 const init = (reinit) => {
   // logger.trace('init: reinit: ' + reinit)
   Plotly.newPlot(plotly.value, data.value, innerLayout, { ...def_options, ...options })
-  // plotly.value.style.visibility = 'hidden'
   let context = {
     $emit: {
       apply: (event, args) => {
         if (event == 'sunburstclick')
           return select(args[0])
-        // if ((event == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
-        //   setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
+        if (event == 'afterplot' && (plotly.value.style.visibility == 'hidden'))
+          setTimeout(() => plotly.value.style.visibility = 'visible', 100) // remove flickering
       }
     }
   }
@@ -196,10 +195,10 @@ const schedule = (ctx) => {
     })
 }
 
-// Plotly.react
 // Plotly.restyle
 // Plotly.relayout
-// Plotly.update
+
+const update = () => Plotly.update(plotly.value, data.value, innerLayout)
 
 const react = () => {
   if (data.value[0].level === undefined) {

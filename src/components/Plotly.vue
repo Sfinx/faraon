@@ -2,7 +2,7 @@
 
 <template>
   <q-resize-observer @resize="resize" />
-  <div :id="id" ref="plotly" />
+  <div :id="id" ref="plotly" style="visibility: hidden" />
 </template>
 
 <script setup>
@@ -52,12 +52,12 @@ const init = (reinit) => {
   let context = {
     $emit: {
       apply: (event, args) => {
+        if (event == 'afterplot' && (plotly.value.style.visibility == 'hidden'))
+          setTimeout(() => plotly.value.style.visibility = 'visible', 100) // remove flickering
         if (event == 'sunburstclick')
           return props.click(args[0])
         if (emitsEvents.includes(event))
           return emit(event, args[0])
-        // if ((args[0] == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
-        //   setTimeout(() => plotly.value.style.visibility = 'visible', 200) // remove flickering
       }
     }
   }
