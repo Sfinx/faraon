@@ -12,7 +12,7 @@ import events from './events'
 import methods from './methods'
 import { camelize } from './helper'
 import logger from '@/logger'
-import { useAttrs, ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
+import { useAttrs, ref, onMounted, onBeforeUnmount, computed, watch, nextTick, getCurrentInstance } from 'vue'
 
 const plotly = ref(null)
 const def_options = {
@@ -36,19 +36,21 @@ const props = defineProps({
     required: false,
     default: null
   },
-    click: {
+  click: {
     type: Function
   }
 })
 
-const emitsEvents = ['afterplot', 'hover', 'unhover']
 const emit = defineEmits(['afterplot', 'hover', 'unhover'])
 
 let innerLayout = { ...props.layout }
+const { emitsOptions } = getCurrentInstance()
 
 const init = (reinit) => {
   Plotly.newPlot(plotly.value, props.data, innerLayout, { ...def_options, ...options })
-  // plotly.value.style.visibility = 'hidden'
+  let emitsEvents = []
+  for (let e in emitsOptions)
+    emitsEvents.push(e)
   let context = {
     $emit: {
       apply: (event, args) => {

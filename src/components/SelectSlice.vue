@@ -65,8 +65,6 @@ const props = defineProps({
   }
 })
 
-// const emit = defineEmits(['selected'])
-
 const data = ref([])
 let innerLayout = { ...props.layout }
 let selectedSliceId = '1'
@@ -106,10 +104,9 @@ const select = (e) => {
   let p = e?.points??[0]
   if (!p)
     return true
-  if (keyModifier == 'Shift') {
-    // emit('selected', p[0])
+  if (keyModifier == 'Shift')
     return props.selected(p[0])
-  } else {
+  else {
     // console.log('click: selectedSliceId: ', p, ', dataRoot: ', dataRoot)
     selectedSliceId =  p[0].id
     if (selectedSliceId != '1') {
