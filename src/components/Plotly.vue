@@ -118,12 +118,3 @@ onMounted(() => init())
 onBeforeUnmount(() => deinit())
 
 </script>
-
-<script>
-
-export default {
-  name: 'Plotly',
-  inheritAttrs: false
-}
-
-</script>

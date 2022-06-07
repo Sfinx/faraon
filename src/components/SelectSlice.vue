@@ -234,12 +234,3 @@ onBeforeUnmount(() => {
 })
 
 </script>
-
-<script>
-
-export default {
-  name: 'SelectSlice',
-  inheritAttrs: false
-}
-
-</script>
