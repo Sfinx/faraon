@@ -62,7 +62,6 @@
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
         <q-input dense outlined label-color="black" label="Search" style="height: 6%" class="q-ma-sm"/>
-        <!-- <q-card-section style="height: 100%;"> -->
           <q-table
             dense
             class="sticky-header-table"
@@ -80,6 +79,11 @@
             @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document })"
             no-data-label="No documents yet"
           >
+            <template v-slot:body-cell-description="props" >
+              <q-td class="text-left">
+                <div class="self-center no-outline" v-html="props.value"></div>
+              </q-td>
+            </template>
             <template v-slot:body-cell-type="props" >
               <q-td class="text-left">
                 <!-- <q-icon name="xyz" class="q-mr-md"/> -->
@@ -284,7 +288,7 @@ const maxColumnWidth = 9
 
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
-  { name: 'name', align: 'center', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
+  { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
       return v
