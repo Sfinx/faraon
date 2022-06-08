@@ -564,11 +564,11 @@ const documentsTypeSelect = () => {
   }, 10)
 }
 
-watch(documentsSelect, (d, dprev) => {
-  if (d.all)
-    Object.assign(documentsSelect, documentsSelect, {all : true, orphans: false })
-  if (d.orphans)
-    Object.assign(documentsSelect, documentsSelect, {all : false, orphans: true })
+watch(() => ({ ...documentsSelect }), (d, dprev) => {
+  if (d.all && !dprev.all)
+    return Object.assign(documentsSelect, documentsSelect, {all : true, orphans: false })
+  if (d.orphans && !dprev.orphans)
+    return Object.assign(documentsSelect, documentsSelect, {all : false, orphans: true })
 })
 
 const documentsAllTypes = () => {
