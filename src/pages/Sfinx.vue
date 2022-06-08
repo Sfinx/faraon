@@ -42,11 +42,11 @@
           <q-item v-if="$q.$store.movingSlice" clickable v-close-popup @click="moveSlice(true)">
             <q-item-section>Cancel Slice Move</q-item-section>
           </q-item>
-          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteConfirm('Confirm Slice Trimming', 'Are you sure that want to trim the \'' + menuSlice.name + '\' slice ?',
+          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteConfirm.ask('Confirm Slice Trimming', 'Are you sure that want to trim the \'' + menuSlice.name + '\' slice ?',
               () => deleteSlice())">
             <q-item-section class='text-red'>Delete Slice by trimming</q-item-section>
           </q-item>
-          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteConfirm('Confirm Slice Deletion', 'Are you sure that want to recursively delete the \'' + menuSlice.name + '\' slice ?',
+          <q-item v-if="menuSlice.name && !$q.$store.movingSlice" clickable v-close-popup @click="deleteConfirm.ask('Confirm Recursive Slice Deletion', 'Are you sure that want to recursively delete the \'' + menuSlice.name + '\' slice ?',
               () => deleteSlice(1))">
             <q-item-section class='text-red'>Delete Slice Recursively</q-item-section>
           </q-item>
@@ -132,7 +132,7 @@
             </q-btn>
           </div>
           <div class="q-gutter-sm">
-            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteConfirm('Confirm Document Deletion',
+            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteConfirm.ask('Confirm Document Deletion',
                 'Are you sure that want to delete the ' + documentsSelected??[0].type + ' \'' + documentsSelected??[0].name + '\' ?', () => (documentsSelected?.length == 1), () => deleteDocument())" />
             <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()" />
             <q-btn class="dense bg-secondary text-white" glossy label="New">
@@ -326,16 +326,16 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="deleteConfirmDialog">
+    <q-dialog v-model="deleteConfirm.on">
       <q-card>
         <q-card-section>
-          <div class="text-h6">{{ deleteConfirmTitle }}</div>
+          <div class="text-h6">{{ deleteConfirm.title }}</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">{{ deleteConfirmText }}</q-card-section>
+        <q-card-section class="q-pt-none">{{ deleteConfirm.text }}</q-card-section>
 
         <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Yes" @click="deleteConfirmOk" />
+          <q-btn flat label="Yes" @click="deleteConfirm.ok" />
           <q-btn flat label="Close" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -363,34 +363,34 @@ const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
 
-let viewDocumentDialog = reactive({ on: false, document: null })
-
-const deleteConfirmDialog = ref(false)
-const deleteConfirmTitle = ref('')
-const deleteConfirmText = ref('')
-let deleteConfirmCb = reactive({})
-
 const showFullSlicePath = e => {
   // console.log('showFullSlicePath', e)
 }
 
-const deleteConfirmOk = (ev) => {
-  deleteConfirmCb()
-  deleteConfirmDialog.value = false
-}
+let viewDocumentDialog = reactive({ on: false, document: null })
 
-const deleteConfirm = (title, text, precheck, cb) => {
-  if (!cb) {
-    cb = precheck
-    precheck = null
+let deleteConfirm = reactive({
+  on: false,
+  title: '',
+  text: '',
+  cb: null,
+  ask: (title, text, precheck, okCb) => {
+    if (!okCb) {
+      okCb = precheck
+      precheck = null
+    }
+    if (precheck && !precheck())
+      return
+    deleteConfirm.title = title
+    deleteConfirm.text = text
+    deleteConfirm.cb = okCb
+    deleteConfirm.on = true
+  },
+  ok: (ev) => {
+    deleteConfirm.cb()
+    deleteConfirm.on = false
   }
-  if (precheck && !precheck())
-    return
-  deleteConfirmTitle.value = title
-  deleteConfirmText.value = text
-  deleteConfirmCb = cb
-  deleteConfirmDialog.value = true
-}
+})
 
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
@@ -793,7 +793,6 @@ const refreshSlices = (newRoot) => {
          parent: s.parent,
          out_count: s.out_count,
          description: s.description
-         // doc_count: s.doc_count
        })
        slices.values.push(1)
      }
