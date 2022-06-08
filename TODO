@@ -35,5 +35,5 @@ misc:
    - watcher
    - harvester
  - add static colors to slices
- - switch to https://github.com/flyween/vue3-quill
- - add full path tooltip to edit document slices (GetFullPath([slices])
+ - switch note editor to https://github.com/flyween/vue3-quill
+ - add full path tooltip to edit document slices [ sfinx.getFullPath(slice) ] with cache

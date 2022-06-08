@@ -9,7 +9,6 @@
 
 import Plotly from 'plotly.js/dist/plotly.js'
 import events from './events'
-import methods from './methods'
 import { camelize } from './helper'
 import logger from '@/logger'
 import { useAttrs, ref, onMounted, onBeforeUnmount, computed, watch, nextTick, getCurrentInstance } from 'vue'
