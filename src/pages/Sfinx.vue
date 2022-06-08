@@ -299,7 +299,7 @@
         </q-toolbar>
         <q-card-section class="items-center" >
           <div style="min-height: 10vw">
-            <view-document :document="viewDocumentDialog.document" />
+            <view-document :document="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" />
           </div>
         </q-card-section>
         <q-card-actions align="right">
@@ -370,7 +370,7 @@ const deleteConfirmTitle = ref('')
 const deleteConfirmText = ref('')
 let deleteConfirmCb = reactive({})
 
-const showFullSlicePath = (e) => {
+const showFullSlicePath = e => {
   // console.log('showFullSlicePath', e)
 }
 
@@ -458,7 +458,7 @@ const selectDocument = (evt, row, index) => {
     documentsSelected.value = documentsSelected.value.concat(row)
 }
 
-const getDocumentType = (v) => {
+const getDocumentType = v => {
   return v.at(0).toUpperCase()
 }
 const getDocumentSelectedString = () => documentsSelected.value.length === 0 ? '' : `${documentsSelected.value.length} record${documentsSelected.value.length > 1 ? 's' : ''} selected of ${documentRows.value.length}`
@@ -642,7 +642,7 @@ const documentsAllTypes = () => {
   }
 }
 
-watch(documentsFilter, (n) => refreshDocuments())
+watch(documentsFilter, n => refreshDocuments())
 
 watch(showMenu, shown => {
   if (!shown)
@@ -664,7 +664,7 @@ const documentsTitle = computed(() => {
   return documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in ' + getSlicesNames(documentsFilter)))
 })
 
-const getSlicesNames = (d) => {
+const getSlicesNames = d => {
   let label = d.slices.length ? '' : 'Dao'
   for (let s of d.slices) {
     if (label !== '')

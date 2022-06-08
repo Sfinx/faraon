@@ -100,7 +100,7 @@ const init = (reinit) => {
 
 let dataRoot
 
-const select = (e) => {
+const select = e => {
   let p = e?.points??[0]
   if (!p)
     return true
@@ -177,7 +177,7 @@ const deinit = (umounted) => {
 
 const toDao = () => refresh('1')
 
-const validate = (d) => {
+const validate = d => {
   let err = Plotly.validate(data.value, innerLayout)
   if (err) {
     logger.error('*** Plotly.validate failed')

@@ -9,6 +9,9 @@ import logger from '@/logger'
 import { onMounted } from 'vue'
 
 const props = defineProps({
+  data: {
+    type: Object
+  },
   id: {
     type: String,
     default: null,
@@ -17,7 +20,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-  logger.error('*** Loaded default.vue')
+  logger.trace('ViewTemlate data:' + logger.json(props.data))
 })
 
 </script>

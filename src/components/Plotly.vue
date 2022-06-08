@@ -82,7 +82,7 @@ const deinit = () => {
   Plotly.purge(plotly.value)
 }
 
-const validate = (d) => {
+const validate = d => {
   let err = Plotly.validate(props.data, innerLayout)
   if (err) {
     logger.error('*** Plotly.validate failed')

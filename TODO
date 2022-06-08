@@ -1,5 +1,6 @@
 
  - add document viewer
+ - create the dynamic components for NewOrEditDocument dialog
  - add new documents types
 	- event
 	  - y/m/d h:m:s
@@ -24,11 +25,9 @@
 
 misc:
 
- - create the dynamic component for NewOrEditDocument dialog
  - add slices & documents search
- - transact edit/delete operations
- - create full SelectSlice component
- - create full SelectDoc component
+ - transact edit/delete operations in DB
+ - create main Slices component
  - add voice search (read the book)
  - add div zoom by scroll/pan event
  - add encrypted notes
