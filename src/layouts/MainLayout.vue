@@ -30,11 +30,11 @@
 
         <q-item-label header class="text-h6 text-weight-medium text-black">Menu</q-item-label>
 
-        <q-separator color="black" inset />
+        <q-separator color="black" inset/>
 
         <q-item clickable @click="showLogin()" v-if="!$q.$store.loggedUser">
           <q-item-section avatar>
-            <q-icon name="mdi-login" />
+            <q-icon name="mdi-login"/>
           </q-item-section>
           <q-item-section>
             <q-item-label>Login</q-item-label>
@@ -43,7 +43,7 @@
 
         <q-item clickable v-if="$q.$store.loggedUser" to="/sfinx" style="text-decoration: none; color: inherit;">
           <q-item-section avatar>
-            <q-icon name="mdi-alpha-s-box" />
+            <q-icon name="mdi-alpha-s-box"/>
           </q-item-section>
           <q-item-section>
             <q-item-label>Sfinx</q-item-label>
@@ -52,7 +52,7 @@
 
         <q-item clickable v-if="$q.$store.loggedUser" to="/help" style="text-decoration: none; color: inherit;">
           <q-item-section avatar>
-            <q-icon name="mdi-help-rhombus" />
+            <q-icon name="mdi-help-rhombus"/>
           </q-item-section>
           <q-item-section>
             <q-item-label>Help</q-item-label>
@@ -61,7 +61,7 @@
 
         <q-item clickable v-if="$q.$store.loggedUser" @click="sfinx.logout()" to="/" style="text-decoration: none; color: inherit;">
           <q-item-section avatar>
-            <q-icon name="mdi-logout" />
+            <q-icon name="mdi-logout"/>
           </q-item-section>
           <q-item-section>
             <q-item-label>Logout</q-item-label>
@@ -76,7 +76,7 @@
       <q-card class="q-dialog-plugin" style="user-select: none">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>Sfinx Login</q-toolbar-title>
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="col items-center">
           <form>
@@ -101,7 +101,7 @@
     <q-footer elevated class="bg-primary text-white text-h5" style="user-select: none">
       <q-toolbar>
         <div v-if="router.currentRoute.value.path == '/sfinx'">
-          <q-btn glossy color="secondary" label="Return to Dao" @click="emitter.emit('ReturnToDao')" />
+          <q-btn glossy color="secondary" label="Return to Dao" @click="emitter.emit('ReturnToDao')"/>
           <q-toolbar-title class="absolute-right q-mt-sm q-mr-md">
             {{ logInfo }}
           </q-toolbar-title>
@@ -110,7 +110,7 @@
     </q-footer>
 
     <q-page-container>
-      <router-view />
+      <router-view/>
     </q-page-container>
 
   </q-layout>

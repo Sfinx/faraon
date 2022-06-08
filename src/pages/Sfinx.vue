@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex flex-center" style="user-select: none;">
-    <q-resize-observer @resize="onResize" />
+    <q-resize-observer @resize="onResize"/>
 
     <!-- main slices tree -->
     <div @dblclick="plotlyDoubleClick" @contextmenu="rightClick">
@@ -15,11 +15,11 @@
           <q-item class="bg-orange">
             <q-item-section>{{ 'Actions in ' + (menuSlice.name ? menuSlice.name : 'Dao') }}</q-item-section>
           </q-item>
-          <q-separator />
+          <q-separator/>
             <q-item v-if="!$q.$store.movingSlice" clickable>
               <q-item-section>Add Document</q-item-section>
               <q-item-section side>
-                <q-icon name="keyboard_arrow_right" />
+                <q-icon name="keyboard_arrow_right"/>
               </q-item-section>
 
               <q-menu anchor="top end" self="top start">
@@ -92,48 +92,33 @@
               </q-td>
             </template>
           </q-table>
-        <!-- </q-card-section> -->
         <q-card-actions align="between">
           <div>
-            <q-btn class="dense bg-secondary text-white" glossy label="Filter"> <!-- by slices / by type / orphans only -->
-              <q-menu style="user-select: none;">
-                <q-list style="min-width: 120px">
-                  <q-item>
-                    <div class="column">
-                      <q-toggle v-close-popup v-model="documentsSelect.all" @click="documentsTypeSelect" label="All Documents" />
-                      <q-toggle v-close-popup v-model="documentsSelect.orphans" @click="documentsTypeSelect" label="Orphans only" />
-                      <q-separator />
-                      <q-item clickable>
-                        <q-item-section>By Type</q-item-section>
-                        <q-item-section side>
-                          <q-icon name="keyboard_arrow_right" />
-                        </q-item-section>
-                        <q-menu>
-                          <q-list style="min-width: 120px">
-                            <q-item>
-                              <div class="column">
-                                <q-toggle v-close-popup v-model="documentsSelect.types.note" @click="documentsTypeSelect" label="Notes" />
-                                <q-toggle v-close-popup v-model="documentsSelect.types.file" @click="documentsTypeSelect" label="Files" />
-                                <q-toggle v-close-popup v-model="documentsSelect.types.event" @click="documentsTypeSelect" label="Events" />
-                                <q-toggle v-close-popup v-model="documentsSelect.types.person" @click="documentsTypeSelect" label="Persons" />
-                                <q-toggle v-close-popup v-model="documentsSelect.types.knowhow" @click="documentsTypeSelect" label="KnowHows" />
-                                <q-toggle v-close-popup v-model="documentsSelect.types.todo" @click="documentsTypeSelect" label="ToDos" />
-                                <q-toggle v-close-popup v-model="documentsSelect.types.aim" @click="documentsTypeSelect" label="Aims" />
-                                <q-item v-close-popup style="user-select: none;" @click="documentsAllTypes" clickable>All types</q-item>
-                              </div>
-                            </q-item>
-                          </q-list>
-                        </q-menu>
-                      </q-item>
-                    </div>
-                  </q-item>
-                </q-list>
-              </q-menu>
-            </q-btn>
+            <q-btn-dropdown class="bg-secondary text-white" glossy label="Filter">
+              <q-list style="min-width: 120px">
+                <q-item>
+                  <div class="column">
+                    <q-toggle v-close-popup v-model="documentsSelect.all" @click="documentsTypeSelect" label="All Documents"/>
+                    <q-toggle v-close-popup v-model="documentsSelect.orphans" @click="documentsTypeSelect" label="Orphans only"/>
+                    <q-separator/>
+                    <q-btn-dropdown unelevated dense flat label="By Type">
+                      <q-list style="min-width: 120px">
+                        <q-item>
+                          <div class="column" >
+                            <q-toggle v-for="docType in documentTypes" v-model="documentsSelect.types[docType.toLowerCase()]" @click="documentsTypeSelect" :label="docType"/>
+                            <q-item v-close-popup style="user-select: none;" @click="documentsAllTypes" clickable>All types</q-item>
+                          </div>
+                        </q-item>
+                      </q-list>
+                    </q-btn-dropdown>
+                  </div>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
           </div>
           <div class="q-gutter-sm">
-            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteTheDocument" />
-            <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()" />
+            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteTheDocument"/>
+            <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()"/>
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
                 <q-list v-for="docType in documentTypes" style="min-width: 120px">
@@ -152,12 +137,12 @@
       <q-card class="q-dialog-plugin" style="user-select: none; min-width: 43%;">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>Select Slice</q-toolbar-title>
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="col items-center">
           <div>
-            <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected" />
-            <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()" />
+            <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected"/>
+            <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()"/>
           </div>
         </q-card-section>
       </q-card>
@@ -167,7 +152,7 @@
       <q-card class="q-dialog-plugin" style="user-select: none; min-width: 75%; min-height: 40%">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ newOrEditDocumentDialog.title }}</q-toolbar-title>
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: 20vh">
             <process-document ref="processDocumentRef" :type="newOrEditDocumentDialog.type" op="NewOrEdit" :data="newOrEditDocumentDialog"
@@ -208,10 +193,10 @@
       <q-card class="q-dialog-plugin" style="min-width: 33vw;">
         <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
           <q-toolbar-title>{{ 'View \'' + viewDocumentDialog.document.name + '\'' }}</q-toolbar-title>
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs">
-            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" />
+            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
         </q-card-section>
         <q-select
           filled
@@ -244,17 +229,16 @@
       </q-card>
     </q-dialog>
 
-    <!-- TODO: refactor: incapsulate to object -->
     <q-dialog v-model="showNewOrEditSliceDialog" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ sliceDialogTitle }}</q-toolbar-title>
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="col items-center">
           <form>
             <q-input v-model="menuSlice.name" outlined label-color="black" label="Slice Name" ref="sliceName" @keydown.enter.prevent="sliceDescription.focus()" class="q-mb-sm"/>
-            <q-input v-model="menuSlice.description" outlined label-color="black" label="Slice Description" ref="sliceDescription" @keydown.enter.prevent="sliceProcess" class="q-mb-sm" />
+            <q-input v-model="menuSlice.description" outlined label-color="black" label="Slice Description" ref="sliceDescription" @keydown.enter.prevent="sliceProcess" class="q-mb-sm"/>
           </form>
         </q-card-section>
         <q-card-actions align="right">
@@ -272,8 +256,8 @@
         <q-card-section class="q-pt-none">{{ deleteConfirm.text }}</q-card-section>
 
         <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Yes" @click="deleteConfirm.ok" />
-          <q-btn flat label="Close" v-close-popup />
+          <q-btn flat label="Yes" @click="deleteConfirm.ok"/>
+          <q-btn flat label="Close" v-close-popup/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -385,7 +369,7 @@ let newOrEditDocumentDialog = reactive({
   type: null,
   edit: false,
   document: null,
-  title: 'some doc title'
+  title: ''
 })
 
 const editDocument = (doc) => {
@@ -415,7 +399,7 @@ const documentPresent = (row) => {
 
 const selectDocument = (evt, row, index) => {
   const selectedIndex = documentPresent(row)
-  if (documentPresent(row) > -1)
+  if (selectedIndex > -1)
     documentsSelected.value = documentsSelected.value.slice(0, selectedIndex).concat(documentsSelected.value.slice(selectedIndex + 1))
   else
     documentsSelected.value = documentsSelected.value.concat(row)
@@ -437,33 +421,29 @@ const onDocumentSelection = ({ rows, added, evt }) => {
   document.getSelection().removeAllRanges()
 
   if ($q.platform.is.mobile === true)
-   evt = { ctrlKey: true }
-  else if (evt !== Object(evt) || (evt.shiftKey !== true && evt.ctrlKey !== true)) {
-   documentsSelected.value = added === true ? rows : []
-   return
-  }
+    evt = { ctrlKey: true }
+  else if (evt !== Object(evt) || (evt.shiftKey !== true && evt.ctrlKey !== true))
+    return (documentsSelected.value = added === true ? rows : [])
 
   const operateSelection = added === true
-   ? selRow => {
-     const selectedIndex = documentPresent(selRow)
-     if (selectedIndex === -1)
-      documentsSelected.value = documentsSelected.value.concat(selRow)
-   }
-   : selRow => {
-     const selectedIndex = documentPresent(selRow)
-     if (selectedIndex > -1)
-      documentsSelected.value = documentsSelected.value.slice(0, selectedIndex).concat(documentsSelected.value.slice(selectedIndex + 1))
-   }
+    ? selRow => {
+      const selectedIndex = documentPresent(selRow)
+      if (selectedIndex === -1)
+        documentsSelected.value = documentsSelected.value.concat(selRow)
+    }
+    : selRow => {
+      const selectedIndex = documentPresent(selRow)
+      if (selectedIndex > -1)
+        documentsSelected.value = documentsSelected.value.slice(0, selectedIndex).concat(documentsSelected.value.slice(selectedIndex + 1))
+    }
 
-  if (localLastIndex === null || evt.shiftKey !== true) {
-   operateSelection(row)
-   return
-  }
+  if (localLastIndex === null || evt.shiftKey !== true)
+    return operateSelection(row)
 
   const from = localLastIndex < rowIndex ? localLastIndex : rowIndex
   const to = localLastIndex < rowIndex ? rowIndex : localLastIndex
   for (let i = from; i <= to; i += 1)
-   operateSelection(filteredSortedRows[i])
+    operateSelection(filteredSortedRows[i])
 }
 
 const documentRows = ref([])
@@ -692,11 +672,9 @@ const newOrEditSlice = edit => {
     Object.assign(menuSlice, getSliceInitial())
     menuSlice.id = id
   } else if (menuSlice.id == '1')
-          return
+           return
   showNewOrEditSliceDialog.value = true
-  setTimeout(() => {
-   sliceName.value.focus()
-  }, 50)
+  setTimeout(() => sliceName.value.focus(), 50)
 }
 
 const plotlyDoubleClick = ev => {
@@ -727,10 +705,10 @@ const moveSlice = cancel => {
     sfinx.sendMsg('SliceMoveMode', res => {
       if (res.e)
         $q.$notify(res.e)
-       else {
-         $q.$store.movingSlice = null
-         refreshSlices()
-       }
+      else {
+        $q.$store.movingSlice = null
+        refreshSlices()
+      }
     })
     showMenu.value = false
     return
@@ -740,22 +718,20 @@ const moveSlice = cancel => {
   // console.log('*** moveSlice start', menuSlice)
   refreshSlices('1')
   sfinx.sendMsg('SliceMoveMode', res => {
-  if (res.e)
-    $q.$notify(res.e)
-   else {
-     showMenu.value = false
-     $q.$store.movingSlice = menuSlice
-   }
+    if (res.e)
+      $q.$notify(res.e)
+    else {
+      showMenu.value = false
+      $q.$store.movingSlice = menuSlice
+    }
   }, {
     movingSlice: menuSlice
   })
 }
 
 const rightClick = ev => {
-  if (!currentHoveredSlice.name) {
-    ev.preventDefault()
-    return
-  }
+  if (!currentHoveredSlice.name)
+    return ev.preventDefault()
   // console.log('*** rightClick at', currentHoveredSlice)
 }
 
@@ -810,13 +786,13 @@ const plotlyClick = e => {
     // logger.trace('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
     if ($q.$store.movingSlice) {
       sfinx.sendMsg('SliceMoveMode', res => {
-      if (res.e)
-        $q.$notify(res.e)
-       else {
-         // console.log('*** moveSlice finish', $q.$store.movingSlice)
-         $q.$store.movingSlice = null
-         refreshSlices()
-       }
+        if (res.e)
+          $q.$notify(res.e)
+        else {
+          // console.log('*** moveSlice finish', $q.$store.movingSlice)
+          $q.$store.movingSlice = null
+          refreshSlices()
+        }
       }, {
         newParent: { id: p.id }
       })
@@ -905,12 +881,9 @@ onMounted(() => {
 })
 
 let keyModifier = null
-const keyDown = e => {
-  keyModifier = e.key
-}
-const keyUp = e => {
-  keyModifier = null
-}
+const keyDown = e => keyModifier = e.key
+const keyUp = e =>  keyModifier = null
+
 </script>
 
 <style lang="sass">

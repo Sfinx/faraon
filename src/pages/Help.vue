@@ -13,4 +13,4 @@
     </q-card>
   </q-page>
 </template>
-<script setup />
+<script setup/>

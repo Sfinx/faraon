@@ -1,6 +1,6 @@
 
 <template>
-  <component ref="processDocumentRef" :is="component" :data="props.data" v-if="component" />
+  <component ref="processDocumentRef" :is="component" :data="props.data" v-if="component"/>
 </template>
 
 <script setup>

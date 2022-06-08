@@ -1,8 +1,8 @@
 
 
 <template>
-  <q-resize-observer @resize="resize" />
-  <div :id="props.id" ref="plotly" @select="select" style="visibility: hidden" />
+  <q-resize-observer @resize="resize"/>
+  <div :id="props.id" ref="plotly" @select="select" style="visibility: hidden"/>
 </template>
 
 <script setup>
