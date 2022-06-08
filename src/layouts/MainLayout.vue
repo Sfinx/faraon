@@ -1,3 +1,4 @@
+
 <template>
   <q-layout @contextmenu.prevent view="lHh Lpr lFf" style="user-select: none;">
 

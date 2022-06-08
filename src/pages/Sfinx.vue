@@ -163,129 +163,43 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showNewOrEditNoteDialog" persistent transition="scale">
-      <q-card class="q-dialog-plugin" style="user-select: none; min-width: 80%; min-height: 80%">
+    <q-dialog v-model="newOrEditDocumentDialog.on" persistent transition="scale">
+      <q-card class="q-dialog-plugin" style="user-select: none; min-width: 75%; min-height: 40%">
         <q-toolbar class="bg-primary glossy text-white">
-          <q-toolbar-title>{{ noteDialogTitle }}</q-toolbar-title>
+          <q-toolbar-title>{{ newOrEditDocumentDialog.title }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup />
         </q-toolbar>
-        <q-card-section class="col items-center">
-          <form>
-          <q-input v-model="note.name" outlined label-color="black" label="Note Name" ref="noteName" @keydown.enter.prevent="noteDescription.focus()" class="q-mb-sm"/>
-          <q-editor
-            class="q-mb-sm"
-            v-model="note.description"
-            :dense="$q.screen.lt.md"
-            height="49vh"
-            :toolbar="[
-              [
-                {
-                  label: $q.lang.editor.align,
-                  icon: $q.iconSet.editor.align,
-                  fixedLabel: true,
-                  options: ['left', 'center', 'right', 'justify']
-                }
-              ],
-              ['bold', 'italic', 'strike', 'underline', 'subscript', 'superscript'],
-              ['token', 'hr', 'link', 'custom_btn'],
-              [
-                {
-                  label: $q.lang.editor.formatting,
-                  icon: $q.iconSet.editor.formatting,
-                  list: 'no-icons',
-                  options: [
-                    'p',
-                    'h1',
-                    'h2',
-                    'h3',
-                    'h4',
-                    'h5',
-                    'h6',
-                    'code'
-                  ]
-                },
-                {
-                  label: $q.lang.editor.fontSize,
-                  icon: $q.iconSet.editor.fontSize,
-                  fixedLabel: true,
-                  fixedIcon: true,
-                  list: 'no-icons',
-                  options: [
-                    'size-1',
-                    'size-2',
-                    'size-3',
-                    'size-4',
-                    'size-5',
-                    'size-6',
-                    'size-7'
-                  ]
-                },
-                {
-                  label: $q.lang.editor.defaultFont,
-                  icon: $q.iconSet.editor.font,
-                  fixedIcon: true,
-                  list: 'no-icons',
-                  options: [
-                    'default_font',
-                    'arial',
-                    'arial_black',
-                    'comic_sans',
-                    'courier_new',
-                    'impact',
-                    'lucida_grande',
-                    'times_new_roman',
-                    'verdana'
-                  ]
-                },
-                'removeFormat'
-              ],
-              ['quote', 'unordered', 'ordered', 'outdent', 'indent'],
-
-              ['undo', 'redo'],
-              ['fullscreen']
-            ]"
-            :fonts="{
-              arial: 'Arial',
-              arial_black: 'Arial Black',
-              comic_sans: 'Comic Sans MS',
-              courier_new: 'Courier New',
-              impact: 'Impact',
-              lucida_grande: 'Lucida Grande',
-              times_new_roman: 'Times New Roman',
-              verdana: 'Verdana'
-            }"
-          />
-          <div @click="showSliceSelection()">
-            <q-select
-              filled
-              v-model="note.slices"
-              multiple
-              dense
-              use-chips
-              stack-label
-              label="Slices"
-            >
-              <template v-slot:selected-item="scope">
-                <q-chip
-                  removable
-                  dense
-                  @mouseenter="sfinx.showFullSlicePath(scope.opt)"
-                  @remove="scope.removeAtIndex(scope.index)"
-                  :tabindex="scope.tabindex"
-                  class="q-mr-xs"
-                >
-                <!-- color="white"
-                text-color="secondary" -->
-                  {{ scope.opt.name }}
-                </q-chip>
-              </template>
-            </q-select>
-          </div>
-          </form>
+        <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: 20vh">
+            <process-document ref="processDocumentRef" :type="newOrEditDocumentDialog.type" op="NewOrEdit" :data="newOrEditDocumentDialog"
+              @error="e => { $q.$notify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="refreshDocuments(); documentsSelected = []; newOrEditDocumentDialog.on = false"/>
         </q-card-section>
+        <div class="q-ma-sm" @click="showSliceSelectionDialog = true">
+          <q-select
+            filled
+            v-model="newOrEditDocumentDialog.document.slices"
+            multiple
+            dense
+            use-chips
+            stack-label
+            label="Slices"
+          >
+            <template v-slot:selected-item="scope">
+              <q-chip
+                removable
+                dense
+                @mouseenter="sfinx.showFullSlicePath(scope.opt)"
+                @remove="scope.removeAtIndex(scope.index)"
+                :tabindex="scope.tabindex"
+                class="q-mr-xs"
+              >
+                {{ scope.opt.name }}
+              </q-chip>
+            </template>
+          </q-select>
+        </div>
         <q-card-actions align="between">
-          <q-btn class="bg-secondary text-white" glossy label="Clear Slices" @click="noteClearSlices()"/>
-          <q-btn class="bg-secondary text-white" glossy label="Done" @click="noteProcess()"/>
+          <q-btn class="bg-secondary text-white" glossy label="Clear Slices" @click="newOrEditDocumentClearSlices()"/>
+          <q-btn class="bg-secondary text-white" glossy label="Done" @click="processDocumentRef.processDocument()"/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -293,12 +207,36 @@
     <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="min-width: 33vw;">
         <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
-          <q-toolbar-title>{{ viewDocumentDialog.document.name }}</q-toolbar-title>
+          <q-toolbar-title>{{ 'View \'' + viewDocumentDialog.document.name + '\'' }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup />
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs">
-            <view-document :document="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" />
+            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" />
         </q-card-section>
+        <q-select
+          filled
+          v-model="viewDocumentDialog.document.slices"
+          multiple
+          dense
+          use-chips
+          stack-label
+          label="Slices"
+          class="q-ma-sm outline rounded-borders"
+          style="user-select: none; outline-width: thin"
+        >
+          <template v-slot:selected-item="scope">
+            <q-chip
+              dense
+              @mouseenter="sfinx.showFullSlicePath(scope.opt)"
+              :tabindex="scope.tabindex"
+              class="q-mr-xs"
+            >
+            <!-- color="white"
+            text-color="secondary" -->
+              {{ scope.opt.name }}
+            </q-chip>
+          </template>
+        </q-select>
         <q-card-actions align="right">
           <q-btn class="bg-secondary text-white q-mr-xs" glossy label="Edit" @click="viewDocumentDialog.on = false; editDocument(viewDocumentDialog.document)"/>
           <q-btn class="bg-secondary text-white" glossy label="Done" @click="viewDocumentDialog.on = false"/>
@@ -306,6 +244,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- TODO: refactor: incapsulate to object -->
     <q-dialog v-model="showNewOrEditSliceDialog" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none">
         <q-toolbar class="bg-primary glossy text-white">
@@ -350,23 +289,43 @@ import { useQuasar } from 'quasar'
 import logger from '@/logger'
 import plotly from 'components/Plotly.vue'
 import selectSlice from 'components/SelectSlice.vue'
-import viewDocument from 'components/ViewDocument.vue'
+import ProcessDocument from 'components/ProcessDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
 import { app } from '@/boot/app.js'
 
-const deleteTheDocument = () => {
-  if (documentsSelected.value?.length != 1)
-    return
-  let doc = documentsSelected.value[0]
-  deleteConfirm.ask('Confirm Document Deletion', 'Are you sure that want to delete the ' + doc.type + ' \'' + doc.name + '\' ?', () => deleteDocument())
-}
-
-const selectSliceRef = ref(null)
-
 const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
+
+const maxColumnWidth = 9
+
+const documentColumns = [
+  { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
+  { name: 'name', align: 'center', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
+      if (v.length > maxColumnWidth)
+        return v.substring(0, maxColumnWidth) + '..'
+      return v
+    }
+  },
+  { name: 'description', align: 'center', label: 'Description', field: 'description', sortable: true, format: (v, r) => {
+      if (v.length > maxColumnWidth)
+        return v.substring(0, maxColumnWidth) + '..'
+      return v
+    }
+  },
+  { name: 'ctime', align: 'center', label: 'Stamp', field: 'ctime', sortable: true, format: (val, row) => {
+      let d = new Date(val * 1000)
+      return format(d, 'DD/MM/YY hh:mm:ss')
+    }
+  }
+]
+
+const selectSliceRef = ref(null)
+const processDocumentRef = ref(null)
+const documentsTable = ref(null)
+const documentsSelected = ref([])
+const documentlastIndex = ref(null)
 
 let viewDocumentDialog = reactive({ on: false, document: null })
 
@@ -393,30 +352,12 @@ let deleteConfirm = reactive({
   }
 })
 
-const documentColumns = [
-  { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
-  { name: 'name', align: 'center', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
-      if (v.length > 10)
-        return v.substring(0, 10) + '..'
-      return v
-    }
-  },
-  { name: 'description', align: 'center', label: 'Description', field: 'description', sortable: true, format: (v, r) => {
-      if (v.length > 10)
-        return v.substring(0, 10) + '..'
-      return v
-    }
-  },
-  { name: 'ctime', align: 'center', label: 'Stamp', field: 'ctime', sortable: true, format: (val, row) => {
-      let d = new Date(val * 1000)
-      return format(d, 'DD/MM/YY hh:mm:ss')
-    }
-  }
-]
-
-const documentsTable = ref(null)
-const documentsSelected = ref([])
-const documentlastIndex = ref(null)
+const deleteTheDocument = () => {
+  if (documentsSelected.value?.length != 1)
+    return
+  let doc = documentsSelected.value[0]
+  deleteConfirm.ask('Confirm Document Deletion', 'Are you sure that want to delete the ' + doc.type + ' \'' + doc.name + '\' ?', () => deleteDocument())
+}
 
 const deleteDocument = () => {
   let doc = documentsSelected.value[0]
@@ -427,6 +368,26 @@ const deleteDocument = () => {
   }
 }
 
+const deleteNote = (note) => {
+  sfinx.sendMsg('DeleteNote', res => {
+    if (res.e)
+      $q.$notify(res.e)
+    else {
+      refreshDocuments()
+      $q.$store.total_documents--
+      documentsSelected.value = []
+    }
+  }, note)
+}
+
+let newOrEditDocumentDialog = reactive({
+  on: false,
+  type: null,
+  edit: false,
+  document: null,
+  title: 'some doc title'
+})
+
 const editDocument = (doc) => {
   if (!doc) {
     if (!documentsSelected.value.length || (documentsSelected.value.length > 1))
@@ -436,12 +397,12 @@ const editDocument = (doc) => {
   newOrEditDocument(sfinx.getFullDocumentType(doc), true, doc)
 }
 
-const newOrEditDocument = (docType, edit, inSlice) => {
-  try {
-    eval('newOrEdit' + docType)(edit, inSlice)
-  } catch(e) {
-    logger.error('newOrEditDocument: ' + e.message)
-  }
+const newOrEditDocument = (type, edit, document) => {
+  let inSlices = getSlicesNames(document)
+  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
+  if (!documentsFilter.orphans)
+    newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
+  Object.assign(newOrEditDocumentDialog, { on: true, type, edit, document: {...document } })
 }
 
 const documentPresent = (row) => {
@@ -451,6 +412,7 @@ const documentPresent = (row) => {
   }
   return -1
 }
+
 const selectDocument = (evt, row, index) => {
   const selectedIndex = documentPresent(row)
   if (documentPresent(row) > -1)
@@ -519,21 +481,6 @@ const getSliceInitial = () => {
 const selectSliceReturnToDao = ref(0)
 const showSliceSelectionDialog = ref(false)
 
-const showNewOrEditNoteDialog = ref(false)
-const noteName = ref(null)
-const noteDescription = ref(null)
-const noteDialogTitle = ref('')
-
-const getNoteInitial = () => {
-  return {
-    name: '',
-    description: '',
-    slices: []
-  }
-}
-
-let note = reactive(getNoteInitial())
-
 const maxDepth = 3
 const menuSlice = reactive(getSliceInitial()) // it always doing two way binding !
 const showMenu = ref(false)
@@ -544,25 +491,23 @@ const sliceName = ref(null)
 const sliceDescription = ref(null)
 const plotlyRef = ref(null)
 
-const noteClearSlices = () => note.slices.length = 0
+const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.document.slices.length = 0
 
 const sliceSelected = slice => {
   let name = slice.label.substr(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
-  for (let s of note.slices) {
+  for (let s of newOrEditDocumentDialog.document.slices) {
     if (s.id == slice.id) {
       $q.notify('Slice \'' + name + '\' already assigned')
       return
     }
   }
-  note.slices.push({
+  newOrEditDocumentDialog.document.slices.push({
     name,
     id: slice.id
   })
   showSliceSelectionDialog.value = false
 }
-
-const showSliceSelection = () => showSliceSelectionDialog.value = true
 
 const plotlyAfterPlot = () => {
   // logger.trace('plotlyAfterPlot: ' + plotlyData.value[0].level + ', selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot)
@@ -670,70 +615,6 @@ const getSlicesNames = d => {
     label += s.name
   }
   return label
-}
-
-const newOrEditNote = (edit, inSlice) => {
-  let inSlices = ''
-  if (!edit) {
-    if (!inSlice)
-      inSlice = {
-        slices: [menuSlice]
-      }
-    inSlices = getSlicesNames(inSlice)
-    Object.assign(note, getNoteInitial())
-    note.slices = inSlice.slices
-  } else {
-    if (!documentsFilter.orphans) {
-      for (let s of inSlice.slices) {
-        if (inSlices != '')
-          inSlices += ', '
-        inSlices += s.name
-      }
-    }
-    Object.assign(note, inSlice)
-  }
-  noteDialogTitle.value = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + note.name + '\' Note') : ('New Note')
-  noteDialogTitle.value += (' in [' + inSlices + ']')
-  showNewOrEditNoteDialog.value = true
-  setTimeout(() => {
-   noteName.value.focus()
-  }, 50)
-}
-
-const deleteNote = (note) => {
-  sfinx.sendMsg('DeleteNote', res => {
-    if (res.e)
-      $q.$notify(res.e)
-    else {
-      refreshDocuments()
-      $q.$store.total_documents--
-      documentsSelected.value = []
-    }
-  }, note)
-}
-
-const noteProcess = () => {
-  if (noteDialogTitle.value.startsWith('Edit')) {
-    sfinx.sendMsg('EditNote', res => {
-      if (res.e)
-        $q.$notify(res.e)
-      else {
-        refreshDocuments()
-        documentsSelected.value = []
-        showNewOrEditNoteDialog.value = false
-      }
-    }, note)
-  } else {
-    sfinx.sendMsg('NewNote', res => {
-      if (res.e)
-        $q.$notify(res.e)
-      else {
-        refreshDocuments()
-        documentsSelected.value = []
-        showNewOrEditNoteDialog.value = false
-      }
-    }, note)
-  }
 }
 
 const sliceProcess = () => {

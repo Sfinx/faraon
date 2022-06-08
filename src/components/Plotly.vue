@@ -45,6 +45,8 @@ const emit = defineEmits(['afterplot', 'hover', 'unhover'])
 let innerLayout = { ...props.layout }
 const { emitsOptions } = getCurrentInstance()
 
+let afterplots = 0
+
 const init = (reinit) => {
   Plotly.newPlot(plotly.value, props.data, innerLayout, { ...def_options, ...options })
   let emitsEvents = []
@@ -53,8 +55,8 @@ const init = (reinit) => {
   let context = {
     $emit: {
       apply: (event, args) => {
-        if (event == 'afterplot' && (plotly.value.style.visibility == 'hidden'))
-          setTimeout(() => plotly.value.style.visibility = 'visible', 100) // remove flickering
+        if ((event == 'afterplot') && (plotly.value.style.visibility == 'hidden'))
+          plotly.value.style.visibility = 'visible'
         if (event == 'sunburstclick')
           return props.click(args[0])
         if (emitsEvents.includes(event))

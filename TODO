@@ -1,5 +1,5 @@
 
- - create the dynamic components for NewOrEditDocument dialog
+ - check view & edit doc with orphans
  - add new documents types
 	- event
 	  - y/m/d h:m:s
@@ -37,3 +37,4 @@ misc:
  - add static colors to slices
  - switch note editor to https://github.com/flyween/vue3-quill
  - add full path tooltip to edit document slices [ sfinx.getFullPath(slice) ] with cache
+ - write automated tests (puppeteer based)
