@@ -23,9 +23,9 @@
               </q-item-section>
 
               <q-menu anchor="top end" self="top start">
-                <q-list v-for="doc in documentTypes">
-                  <q-item clickable v-close-popup @click="newOrEditDocument(doc, false)">
-                    <q-item-section>Add {{ doc }}</q-item-section>
+                <q-list v-for="docType in documentTypes">
+                  <q-item clickable v-close-popup @click="newOrEditDocument(docType, false)">
+                    <q-item-section>Add {{ docType }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -87,7 +87,7 @@
                   class="q-ml-xs"
                   style="height: 25px"
                   color="green"
-                  :label="getDocumentType(props.value)"
+                  :label="sfinx.getDocumentType(props.value)"
                 ></q-badge>
               </q-td>
             </template>
@@ -132,14 +132,13 @@
             </q-btn>
           </div>
           <div class="q-gutter-sm">
-            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteConfirm.ask('Confirm Document Deletion',
-                'Are you sure that want to delete the ' + documentsSelected??[0].type + ' \'' + documentsSelected??[0].name + '\' ?', () => (documentsSelected?.length == 1), () => deleteDocument())" />
+            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteTheDocument" />
             <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()" />
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
-                <q-list v-for="doc in documentTypes" style="min-width: 120px">
-                  <q-item clickable v-close-popup @click="newOrEditDocument(doc, false, documentsFilter)">
-                    <q-item-section>{{ doc }}</q-item-section>
+                <q-list v-for="docType in documentTypes" style="min-width: 120px">
+                  <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsFilter)">
+                    <q-item-section>{{ docType }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -177,7 +176,7 @@
             class="q-mb-sm"
             v-model="note.description"
             :dense="$q.screen.lt.md"
-            min-height="49vh"
+            height="49vh"
             :toolbar="[
               [
                 {
@@ -270,7 +269,7 @@
                 <q-chip
                   removable
                   dense
-                  @mouseenter="showFullSlicePath(scope.opt)"
+                  @mouseenter="sfinx.showFullSlicePath(scope.opt)"
                   @remove="scope.removeAtIndex(scope.index)"
                   :tabindex="scope.tabindex"
                   class="q-mr-xs"
@@ -292,17 +291,16 @@
     </q-dialog>
 
     <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
-      <q-card class="q-dialog-plugin" style="user-select: none; min-width: 40%; min-height: 40%">
-        <q-toolbar class="bg-primary glossy text-white">
+      <q-card class="q-dialog-plugin" style="min-width: 33vw;">
+        <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
           <q-toolbar-title>{{ viewDocumentDialog.document.name }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup />
         </q-toolbar>
-        <q-card-section class="items-center" >
-          <div style="min-height: 10vw">
+        <q-card-section class="items-center q-mx-xs q-mt-xs">
             <view-document :document="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" />
-          </div>
         </q-card-section>
         <q-card-actions align="right">
+          <q-btn class="bg-secondary text-white q-mr-xs" glossy label="Edit" @click="viewDocumentDialog.on = false; editDocument(viewDocumentDialog.document)"/>
           <q-btn class="bg-secondary text-white" glossy label="Done" @click="viewDocumentDialog.on = false"/>
         </q-card-actions>
       </q-card>
@@ -327,7 +325,7 @@
     </q-dialog>
 
     <q-dialog v-model="deleteConfirm.on">
-      <q-card>
+      <q-card class="q-ma-lg">
         <q-card-section>
           <div class="text-h6">{{ deleteConfirm.title }}</div>
         </q-card-section>
@@ -357,15 +355,18 @@ import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
 import { app } from '@/boot/app.js'
 
+const deleteTheDocument = () => {
+  if (documentsSelected.value?.length != 1)
+    return
+  let doc = documentsSelected.value[0]
+  deleteConfirm.ask('Confirm Document Deletion', 'Are you sure that want to delete the ' + doc.type + ' \'' + doc.name + '\' ?', () => deleteDocument())
+}
+
 const selectSliceRef = ref(null)
 
 const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
-
-const showFullSlicePath = e => {
-  // console.log('showFullSlicePath', e)
-}
 
 let viewDocumentDialog = reactive({ on: false, document: null })
 
@@ -418,26 +419,26 @@ const documentsSelected = ref([])
 const documentlastIndex = ref(null)
 
 const deleteDocument = () => {
-  let doc = documentsSelected.value[0].type
-  doc = doc.charAt(0).toUpperCase() + doc.slice(1)
+  let doc = documentsSelected.value[0]
   try {
-    eval('delete' + doc)(documentsSelected.value[0])
+    eval('delete' + sfinx.getFullDocumentType(doc))(doc)
   } catch(e) {
     logger.error('deleteDocument: ' + e.message)
   }
 }
 
-const editDocument = () => {
-  if (!documentsSelected.value.length || documentsSelected.value.length > 1)
-    return
-  let doc = documentsSelected.value[0].type
-  doc = doc.charAt(0).toUpperCase() + doc.slice(1)
-  newOrEditDocument(doc, true, documentsSelected.value[0])
+const editDocument = (doc) => {
+  if (!doc) {
+    if (!documentsSelected.value.length || (documentsSelected.value.length > 1))
+      return
+    doc = documentsSelected.value[0]
+  }
+  newOrEditDocument(sfinx.getFullDocumentType(doc), true, doc)
 }
 
-const newOrEditDocument = (doc, edit, inSlice) => {
+const newOrEditDocument = (docType, edit, inSlice) => {
   try {
-    eval('newOrEdit' + doc)(edit, inSlice)
+    eval('newOrEdit' + docType)(edit, inSlice)
   } catch(e) {
     logger.error('newOrEditDocument: ' + e.message)
   }
@@ -458,9 +459,6 @@ const selectDocument = (evt, row, index) => {
     documentsSelected.value = documentsSelected.value.concat(row)
 }
 
-const getDocumentType = v => {
-  return v.at(0).toUpperCase()
-}
 const getDocumentSelectedString = () => documentsSelected.value.length === 0 ? '' : `${documentsSelected.value.length} record${documentsSelected.value.length > 1 ? 's' : ''} selected of ${documentRows.value.length}`
 
 const onDocumentSelection = ({ rows, added, evt }) => {

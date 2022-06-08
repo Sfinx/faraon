@@ -16,6 +16,15 @@ let endpoint = proto + '://' + location.hostname + ':19081/app/' + api_version
 export default {
   updateTimeout: 250,
   sliceSeparator: '|',
+  getDocumentType(type) {
+    return type.at(0).toUpperCase()
+  },
+  getFullDocumentType(doc) {
+    return doc.type.charAt(0).toUpperCase() + doc.type.slice(1)
+  },
+  showFullSlicePath(s) {
+    // console.log('showFullSlicePath', s)
+  },
   dispatch_default(ro) {
     if (app.parameters.debug && (ro.m !== 'UpdateVU'))
      logger.debug('Sfinx: Default message dispatch, msg: ' + ((app.parameters.debug > 1) ? logger.json(ro) : ro.m))

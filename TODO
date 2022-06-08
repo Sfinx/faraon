@@ -1,5 +1,4 @@
 
- - add document viewer
  - create the dynamic components for NewOrEditDocument dialog
  - add new documents types
 	- event

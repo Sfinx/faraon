@@ -7,6 +7,7 @@
 
 import logger from '@/logger'
 import { shallowRef, onMounted } from 'vue'
+import sfinx from '@/sfinx'
 
 const props = defineProps({
   document: {
@@ -23,8 +24,8 @@ const component = shallowRef(null)
 const emit = defineEmits(['error'])
 
 onMounted(() => {
-  let type = props.document.type.charAt(0).toUpperCase() + props.document.type.slice(1)
-  logger.trace('ViewDocument type:', type)
+  let type = sfinx.getFullDocumentType(props.document)
+  logger.trace('ViewDocument type:' + type)
   import(`./View${type}.vue`).then(i => component.value = i.default).catch(e => emit('error', e))
 })
 

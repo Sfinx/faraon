@@ -175,7 +175,10 @@ const deinit = (umounted) => {
     Plotly.purge(plotly.value)
 }
 
-const toDao = () => refresh('1')
+const toDao = () => {
+  if (dataRoot != 1)
+    refresh('1')
+}
 
 const validate = d => {
   let err = Plotly.validate(data.value, innerLayout)
