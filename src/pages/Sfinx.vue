@@ -248,13 +248,11 @@
     </q-dialog>
 
     <q-dialog v-model="deleteConfirm.on">
-      <q-card class="q-ma-lg">
+      <q-card>
         <q-card-section>
-          <div class="text-h6">{{ deleteConfirm.title }}</div>
+          <div class="q-ml-none text-h6">{{ deleteConfirm.title }}</div>
         </q-card-section>
-
-        <q-card-section class="q-pt-none">{{ deleteConfirm.text }}</q-card-section>
-
+        <q-card-section class="q-px-md q-pt-none">{{ deleteConfirm.text }}</q-card-section>
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Yes" @click="deleteConfirm.ok"/>
           <q-btn flat label="Close" v-close-popup/>
@@ -359,7 +357,7 @@ const deleteNote = (note) => {
     else {
       refreshDocuments()
       $q.$store.total_documents--
-      documentsSelected.value = []
+      documentsSelected.value.length = 0
     }
   }, note)
 }
@@ -545,6 +543,7 @@ const documentsTypeSelect = () => {
 }
 
 watch(() => ({ ...documentsSelect }), (d, dprev) => {
+  documentsSelected.value.length = 0
   if (d.all && !dprev.all)
     return Object.assign(documentsSelect, documentsSelect, {all : true, orphans: false })
   if (d.orphans && !dprev.orphans)
@@ -781,7 +780,7 @@ const refreshDocuments = () => {
 const plotlyClick = e => {
   // console.log('plotlyClick', e)
   let p = e.points[0]
-  documentsSelected.value = []
+  documentsSelected.value.length = 0
   if (keyModifier == 'Shift') {
     // logger.trace('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
     if ($q.$store.movingSlice) {

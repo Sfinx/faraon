@@ -4,7 +4,7 @@
       <q-toolbar class="bg-primary glossy text-white">
         <q-toolbar-title>Help</q-toolbar-title>
       </q-toolbar>
-      <div class="q-pa-xl">
+      <div class="q-pa-sm q-ml-md">
         <h6>
         <p>Slice selection is performed with holding Shift</p>
         <p>Double click in documents browser to view document</p>
