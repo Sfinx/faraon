@@ -77,7 +77,7 @@
             :rows-per-page-options="[0]"
             row-key="id"
             @row-click="selectDocument"
-            @row-dblclick="viewDocument"
+            @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document })"
             no-data-label="No documents yet"
           >
             <template v-slot:body-cell-type="props" >
@@ -291,6 +291,23 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
+      <q-card class="q-dialog-plugin" style="user-select: none; min-width: 40%; min-height: 40%">
+        <q-toolbar class="bg-primary glossy text-white">
+          <q-toolbar-title>{{ viewDocumentDialog.document.name }}</q-toolbar-title>
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-toolbar>
+        <q-card-section class="items-center" >
+          <div style="min-height: 10vw">
+            <view-document :document="viewDocumentDialog.document" />
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn class="bg-secondary text-white" glossy label="Done" @click="viewDocumentDialog.on = false"/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-dialog v-model="showNewOrEditSliceDialog" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none">
         <q-toolbar class="bg-primary glossy text-white">
@@ -335,6 +352,7 @@ import { useQuasar } from 'quasar'
 import logger from '@/logger'
 import plotly from 'components/Plotly.vue'
 import selectSlice from 'components/SelectSlice.vue'
+import viewDocument from 'components/ViewDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
 import { app } from '@/boot/app.js'
@@ -344,6 +362,8 @@ const selectSliceRef = ref(null)
 const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
+
+let viewDocumentDialog = reactive({ on: false, document: null })
 
 const deleteConfirmDialog = ref(false)
 const deleteConfirmTitle = ref('')
@@ -436,10 +456,6 @@ const selectDocument = (evt, row, index) => {
     documentsSelected.value = documentsSelected.value.slice(0, selectedIndex).concat(documentsSelected.value.slice(selectedIndex + 1))
   else
     documentsSelected.value = documentsSelected.value.concat(row)
-}
-
-const viewDocument = (evt, row, index) => {
-  console.log('viewDocument', row)
 }
 
 const getDocumentType = (v) => {

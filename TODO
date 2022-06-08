@@ -24,6 +24,7 @@
 
 misc:
 
+ - create the dynamic component for NewOrEditDocument dialog
  - add slices & documents search
  - transact edit/delete operations
  - create full SelectSlice component
