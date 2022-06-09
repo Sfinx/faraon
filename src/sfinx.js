@@ -26,7 +26,7 @@ export default {
     // console.log('showFullSlicePath', s)
   },
   dispatch_default(ro) {
-    if (app.parameters.debug && (ro.m !== 'UpdateVU'))
+    if (app.parameters.debug)
      logger.debug('Sfinx: Default message dispatch, msg: ' + ((app.parameters.debug > 1) ? logger.json(ro) : ro.m))
     switch (ro.m) {
       case 'AppConnected':
@@ -64,7 +64,6 @@ export default {
     wss.send_msg('Login', uiCb, {
       user,
       pass,
-      debug: app.parameters.debug,
       app: a
     })
   },
