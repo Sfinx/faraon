@@ -31,6 +31,7 @@ const props = defineProps({
 })
 
 const component = shallowRef(null)
+// in a case absent hahndler for processed doc type
 const emit = defineEmits(['error'])
 
 onMounted(() => {

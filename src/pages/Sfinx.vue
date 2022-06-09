@@ -104,7 +104,7 @@
                       <q-list style="min-width: 120px">
                         <q-item>
                           <div class="column" >
-                            <q-toggle v-for="docType in documentTypes" v-model="documentsSelect.types[docType.toLowerCase()]" @click="documentsTypeSelect" :label="docType"/>
+                            <q-toggle v-for="docType in documentTypes.slice().reverse()" v-model="documentsSelect.types[docType.toLowerCase()]" @click="documentsTypeSelect" :label="docType"/>
                             <q-item v-close-popup style="user-select: none;" @click="documentsAllTypes" clickable>All types</q-item>
                           </div>
                         </q-item>
@@ -120,7 +120,7 @@
             <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()"/>
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
-                <q-list v-for="docType in documentTypes" style="min-width: 120px">
+                <q-list v-for="docType in documentTypes.slice().reverse()" style="min-width: 120px">
                   <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsFilter)">
                     <q-item-section>{{ docType }}</q-item-section>
                   </q-item>
@@ -155,7 +155,7 @@
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: 20vh">
             <process-document ref="processDocumentRef" :type="newOrEditDocumentDialog.type" op="NewOrEdit" :data="newOrEditDocumentDialog"
-              @error="e => { $q.$notify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="refreshDocuments(); documentsSelected = []; newOrEditDocumentDialog.on = false"/>
+              @error="e => { $q.$notify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="newOrEditDocumentDone"/>
         </q-card-section>
         <div class="q-ma-sm" @click="showSliceSelectionDialog = true">
           <q-select
@@ -385,6 +385,29 @@ const newOrEditDocument = (type, edit, document) => {
   if (!documentsFilter.orphans)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
   Object.assign(newOrEditDocumentDialog, { on: true, type, edit, document: {...document } })
+}
+
+const newOrEditDocumentDone = (doc) => {
+  const ok = () => {
+    refreshDocuments()
+    documentsSelected.value = []
+    newOrEditDocumentDialog.on = false
+  }
+  if (newOrEditDocumentDialog.edit) {
+    sfinx.sendMsg('EditDocument', res => {
+      if (res.e)
+        $q.$notify(res.e)
+      else
+        ok()
+    }, doc)
+  } else {
+    sfinx.sendMsg('NewDocument', res => {
+      if (res.e)
+        $q.$notify(res.e)
+      else
+        ok()
+    }, doc)
+  }
 }
 
 const documentPresent = (row) => {

@@ -122,26 +122,15 @@ const emit = defineEmits(['done'])
 const process = () => {
   let note = {
     id: props.data.edit ? props.data.document.id : undefined,
-    name: props.data.document.name,
-    description: props.data.document.description,
+    data: {
+      type: 'note',
+      name: props.data.document.name,
+      description: props.data.document.description,
+    },
     slices: props.data.document.slices
   }
   // logger.trace('newOrEditNote: process: ' + logger.json(note))
-  if (props.data.edit) {
-    sfinx.sendMsg('EditNote', res => {
-      if (res.e)
-        $q.$notify(res.e)
-      else
-        emit('done')
-    }, note)
-  } else {
-    sfinx.sendMsg('NewNote', res => {
-      if (res.e)
-        $q.$notify(res.e)
-      else
-        emit('done')
-    }, note)
-  }
+  emit('done', note)
 }
 
 defineExpose({
