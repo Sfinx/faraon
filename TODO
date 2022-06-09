@@ -1,4 +1,6 @@
 
+ - NewNote -> NewDocument
+ - EditNote -> EditDocument
  - add new documents types
 	- event
 	  - y/m/d h:m:s

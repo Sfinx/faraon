@@ -340,31 +340,26 @@ let deleteConfirm = reactive({
 })
 
 const deleteTheDocument = () => {
-  if (documentsSelected.value?.length != 1)
+  if (documentsSelected.value?.length < 1)
     return
   let doc = documentsSelected.value[0]
-  deleteConfirm.ask('Confirm Document Deletion', 'Are you sure that want to delete the ' + doc.type + ' \'' + doc.name + '\' ?', () => deleteDocument())
+  let msg = 'Are you sure that want to delete ' + (documentsSelected.value.length > 1 ? (documentsSelected.value.length + ' documents ?') : ('the ' + doc.type + ' \'' + doc.name + '\' ?'))
+  deleteConfirm.ask('Confirm Document' + (documentsSelected.value.length > 1 ? 's' : '') + ' Deletion', msg, () => deleteDocument())
 }
 
 const deleteDocument = () => {
-  let doc = documentsSelected.value[0]
-  try {
-    eval('delete' + sfinx.getFullDocumentType(doc))(doc)
-  } catch(e) {
-    logger.error('deleteDocument: ' + e.message)
-  }
-}
-
-const deleteNote = (note) => {
-  sfinx.sendMsg('DeleteNote', res => {
+  let docs = []
+  for (let d of documentsSelected.value)
+    docs.push(d.id)
+  sfinx.sendMsg('DeleteDocument', res => {
     if (res.e)
       $q.$notify(res.e)
     else {
       refreshDocuments()
-      $q.$store.total_documents--
+      $q.$store.total_documents -= docs.length
       documentsSelected.value.length = 0
     }
-  }, note)
+  }, docs)
 }
 
 let newOrEditDocumentDialog = reactive({
