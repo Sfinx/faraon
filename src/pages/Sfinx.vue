@@ -79,11 +79,6 @@
             @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document })"
             no-data-label="No documents yet"
           >
-            <template v-slot:body-cell-description="props" >
-              <q-td class="text-left">
-                <div class="self-center no-outline" v-html="props.value"></div>
-              </q-td>
-            </template>
             <template v-slot:body-cell-type="props" >
               <q-td class="text-left">
                 <!-- <q-icon name="xyz" class="q-mr-md"/> -->
@@ -286,6 +281,11 @@ const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Ai
 
 const maxColumnWidth = 9
 
+const stripHTML = (html) => {
+  let doc = new DOMParser().parseFromString(html, 'text/html')
+  return doc.body.textContent || ''
+}
+
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
   { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
@@ -295,6 +295,7 @@ const documentColumns = [
     }
   },
   { name: 'description', align: 'center', label: 'Description', field: 'description', sortable: true, format: (v, r) => {
+      v = stripHTML(v)
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
       return v
