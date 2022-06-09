@@ -56,7 +56,7 @@
     </div>
 
     <!-- documents browser -->
-    <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 30%;">
+    <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 33%;">
       <q-card class="q-dialog-plugin" style="user-select: none; height: 100%; min-width: 95%;">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>

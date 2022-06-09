@@ -24,10 +24,10 @@ const props = defineProps({
 
 </script>
 
-<style>
+<style scoped>
 
 .q-card__section--vert {
-    padding: 3px;
+  padding: 3px;
 }
 
 </style>
