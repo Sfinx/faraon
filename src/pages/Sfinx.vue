@@ -606,7 +606,7 @@ watch(showMenu, shown => {
 })
 
 const documentsTitle = computed(() => {
-  return documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in ' + getSlicesNames(documentsFilter)))
+  return documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsFilter) + ']'))
 })
 
 const getSlicesNames = d => {
@@ -788,23 +788,30 @@ const setRootSlice = root => {
 }
 
 const refreshDocuments = () => {
-  let slice = documentsFilter.slices
-  // logger.trace('refreshDocuments: ' + logger.json(slice))
+  // logger.trace('refreshDocuments: ' + logger.json(documentsFilter.slices))
+  // no need in slices: [{name:...}]
+  let filter = Object.assign({}, documentsFilter)
+  filter.slices = []
+  for (let s of documentsFilter.slices)
+    filter.slices.push({ id: s.id })
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
       $q.$notify(res.e)
-    else {
-      // console.log('GetDocuments:', res.d)
+    else
       documentRows.value = res.d
-    }
-  }, documentsFilter)
+  }, filter)
 }
 
 const plotlyClick = e => {
   // console.log('plotlyClick', e)
   let p = e.points[0]
   documentsSelected.value.length = 0
-  if (keyModifier == 'Shift') {
+  if (keyModifier == 'Control') { // add slice to filter
+    if (!$q.$store.movingSlice) {
+      documentsFilter.slices.push(currentHoveredSlice)
+      return false
+    }
+  } else if (keyModifier == 'Shift') {
     // logger.trace('*** Sfinx: selected slice: id: ' + p.id + ', label: [' + p.label + '], parentId: ' + p.customdata.parent)
     if ($q.$store.movingSlice) {
       sfinx.sendMsg('SliceMoveMode', res => {

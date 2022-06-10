@@ -7,6 +7,7 @@
       <div class="q-pa-sm q-ml-md">
         <h6>
         <p>Slice selection is performed with holding Shift</p>
+        <p>Add slice to selection is performed with holding Ctrl</p>
         <p>Double click in documents browser to view document</p>
       </h6>
       </div>

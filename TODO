@@ -1,8 +1,12 @@
  - add new documents types
 	- event
 	  - y/m/d h:m:s
-	  - trigger: none/once/periodic
+	  - trigger: none/once/periodically: { yearly, monthly, etc. }
 	  - notify options
+      - create user settings
+        - add telegram channel
+      - create users table
+      - implement login
 	    - send to telegram
 	- file
 	  - types
@@ -10,22 +14,20 @@
 	    - collection flag (add entries/directories)
 	  - play collections
 	  - edit collections, set skip flag for entry
-  - persons (can be combination of note/event/file or just new slice sliced with Persons ??)
+  - persons (can be combination of note/event/file sliced with Persons ??)
     - create & attach birthday event
 	- todo
-  - know how / knowledge
+  - know how / knowledge (can be combination of todo)
 	- aim
 
 misc:
 
+ - implement multiple documents editing (the same slices only)
  - add slices & documents search
   - in sliceselect as paths suggestions
- - transact edit/delete operations in DB
- - create main Slices component
  - add voice search (read the book)
- - add div zoom by scroll/pan event
  - add encryption to documents
- - user defined fields for documents (phone/company/etc.)
+ - implement slice semantics (json-ld)
  - implement basic AI agents:
    - watcher
    - harvester
@@ -33,3 +35,6 @@ misc:
  - switch note editor to https://github.com/flyween/vue3-quill
  - add full path tooltip to document slices [ sfinx.getFullPath(slice) ] with cache
  - write automated tests (puppeteer based)
+ - transact edit/delete operations in DB
+ - add div zoom by scroll/pan event
+ - create main Slices component (reuse it in sliceselect)
