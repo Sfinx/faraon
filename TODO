@@ -33,7 +33,6 @@ misc:
    - harvester
  - add static colors to slices
  - switch note editor to https://github.com/flyween/vue3-quill
- - add full path tooltip to document slices [ sfinx.getFullPath(slice) ] with cache
  - write automated tests (puppeteer based)
  - transact edit/delete operations in DB
  - add div zoom by scroll/pan event

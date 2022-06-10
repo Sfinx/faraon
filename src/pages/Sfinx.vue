@@ -171,11 +171,12 @@
               <q-chip
                 removable
                 dense
-                @mouseenter="sfinx.showFullSlicePath(scope.opt)"
                 @remove="scope.removeAtIndex(scope.index)"
+                @mouseenter="updateFullSlicePath(scope.opt)"
                 :tabindex="scope.tabindex"
                 class="q-mr-xs"
               >
+                <q-tooltip anchor="top right" :offset="[30, 30]" >{{ fullSlicePath }}</q-tooltip>
                 {{ scope.opt.name }}
               </q-chip>
             </template>
@@ -207,14 +208,15 @@
           label="Slices"
           class="q-ma-sm outline rounded-borders"
           style="user-select: none; outline-width: thin"
+          @mouseenter="updateFullSlicePath(scope.opt)"
         >
           <template v-slot:selected-item="scope">
             <q-chip
               dense
-              @mouseenter="sfinx.showFullSlicePath(scope.opt)"
               :tabindex="scope.tabindex"
               class="q-mr-xs"
             >
+              <q-tooltip anchor="top right" :offset="[30, 30]" >{{ fullSlicePath(scope.opt) }}</q-tooltip>
             <!-- color="white"
             text-color="secondary" -->
               {{ scope.opt.name }}
@@ -276,6 +278,9 @@ import { format } from 'fecha'
 import { app } from '@/boot/app.js'
 
 const $q = useQuasar()
+
+const fullSlicePath = ref(null)
+const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
 
 const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
 

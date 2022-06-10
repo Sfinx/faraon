@@ -21,8 +21,20 @@ export default {
   getFullDocumentType(doc) {
     return doc.type.charAt(0).toUpperCase() + doc.type.slice(1)
   },
-  showFullSlicePath(s) {
-    // console.log('showFullSlicePath', s)
+  sendMsgPromise(cmd, data) {
+    return new Promise((resolve, reject) => {
+      this.sendMsg(cmd, res => {
+        return res.e ? reject(res.e) : resolve(res.d)
+      }, data)
+    })
+  },
+  slicePathCache: [],
+  async showFullSlicePath(s) {
+    if (this.slicePathCache[s.id])
+      return this.slicePathCache[s.id]
+    let r = await this.sendMsgPromise('GetSlicePath', s.id)
+    this.slicePathCache[s.id] = r
+    return r
   },
   dispatch_default(ro) {
     if (app.parameters.debug)
