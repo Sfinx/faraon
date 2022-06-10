@@ -9,9 +9,8 @@ import { store } from '@/boot/store'
 let wss, _connected, _disconnected
 let dispatch = {}
 let authAttempted
-let proto = (location.protocol == 'https:') ? 'wss' : 'ws'
 let api_version = '0.0.1'
-let endpoint = proto + '://' + location.hostname + ':19081/app/' + api_version
+let endpoint = 'wss://' + location.hostname + ':19081/sfinx/' + api_version
 
 export default {
   updateTimeout: 250,

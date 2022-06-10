@@ -1,20 +1,17 @@
-
- - NewNote -> NewDocument
- - EditNote -> EditDocument
  - add new documents types
 	- event
 	  - y/m/d h:m:s
 	  - trigger: none/once/periodic
 	  - notify options
 	    - send to telegram
-	- persons
-	  - create & attach birthday event
 	- file
 	  - types
 	    - ebook/sound/image
 	    - collection flag (add entries/directories)
 	  - play collections
 	  - edit collections, set skip flag for entry
+  - persons (can be combination of note/event/file or just new slice sliced with Persons ??)
+    - create & attach birthday event
 	- todo
   - know how / knowledge
 	- aim
@@ -22,6 +19,7 @@
 misc:
 
  - add slices & documents search
+  - in sliceselect as paths suggestions
  - transact edit/delete operations in DB
  - create main Slices component
  - add voice search (read the book)
@@ -35,5 +33,3 @@ misc:
  - switch note editor to https://github.com/flyween/vue3-quill
  - add full path tooltip to document slices [ sfinx.getFullPath(slice) ] with cache
  - write automated tests (puppeteer based)
- - add possibility to attach one document to other (??)
-   - attach can be two way (inbound & outbound)

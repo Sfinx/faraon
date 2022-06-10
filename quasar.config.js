@@ -11,6 +11,7 @@
 
 const { configure } = require('quasar/wrappers');
 const path = require('path');
+const fs = require('fs');
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -88,6 +89,10 @@ module.exports = configure(function (/* ctx */) {
       host: 'localhost',
       port: 9000,
       // https: true,
+      https: {
+        key: fs.readFileSync('../be/certs/key.pem'),
+        cert: fs.readFileSync('../be/certs/cert.pem')
+      },
       open: false // opens browser window automatically
     },
 
