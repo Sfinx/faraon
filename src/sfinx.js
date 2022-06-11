@@ -33,8 +33,14 @@ export default {
     if (this.slicePathCache[s.id])
       return this.slicePathCache[s.id]
     let r = await this.sendMsgPromise('GetSlicePath', s.id)
-    this.slicePathCache[s.id] = r
-    return r
+    let path = ''
+    for (let p of r) {
+      if (path != '')
+        path += ' / '
+      path += p.name
+    }
+    this.slicePathCache[s.id] = path
+    return path
   },
   dispatch_default(ro) {
     if (app.parameters.debug)
