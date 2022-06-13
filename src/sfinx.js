@@ -74,7 +74,7 @@ export default {
     wss?.close(4101, 'Logout')
   },
   login(user, pass, uiCb) {
-    pass = sha512(user + wss.nonce + pass)
+    pass = sha512(wss.nonce + sha512(user + pass))
     let a = { ...app }
     delete a.name
     delete a.description

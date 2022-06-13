@@ -17,6 +17,7 @@
             flat
             dense
             icon="mdi-account-key"
+            @click="showProfileDialog"
         />
       </q-toolbar>
     </q-header>
@@ -141,6 +142,30 @@ const debugKey = ref('')
 const sid = ref('')
 const sfinxHost = ref('localhost')
 
+function showProfileDialog () {
+  $q.dialog({
+    title: 'Profile',
+    message: 'Set Telegram Bot token',
+    prompt: {
+      model: '',
+      type: 'text'
+    },
+    cancel: true,
+    persistent: true
+  }).onOk(data => {
+    if (!data.length)
+      return
+    sfinx.sendMsg('UpdateProfile', res => {
+      if (res.e)
+        $q.$notify(res.e)
+    }, {
+      telegramToken: data
+    })
+  }).onCancel(() => {
+  }).onDismiss(() => {
+  })
+}
+
 watch(loginDlg, (loginDlg, prevLoginDlg) => {
   if (loginDlg)
    window.addEventListener('keydown', keyDown)
@@ -151,9 +176,8 @@ watch(loginDlg, (loginDlg, prevLoginDlg) => {
 const logInfo = computed(() => $q.$store.loggedUser ? ('Logged as ' + $q.$store.loggedUser.footer + ' to sfinx://' + sfinxHost.value +' [Total ' + $q.$store.total_slices + ' slices, '
   + $q.$store.total_documents + ' documents]') : 'Not logged in')
 
-const keyDown = e => {
-  debugKey.value = e.key
-}
+const keyDown = e => debugKey.value = e.key
+
 const setWaitIcon = (v, m) => {
   waitIcon.value = (v == true) ? v : null
   if (v)
@@ -161,6 +185,7 @@ const setWaitIcon = (v, m) => {
   else
     $q.loading.hide()
 }
+
 const validate = isReg => {
   if (sfinx.tooFastAuth()) {
    $q.$notify('Too fast auth !')
@@ -168,6 +193,7 @@ const validate = isReg => {
   }
   return true
 }
+
 const login = () => {
   if (!sid.value || waitIcon.value || !validate()) {
    if (!sid.value)
