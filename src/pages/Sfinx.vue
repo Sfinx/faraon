@@ -200,31 +200,33 @@
         <q-card-section class="items-center q-mx-xs q-mt-xs">
             <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
         </q-card-section>
-        <q-select
-          filled
-          v-model="viewDocumentDialog.document.slices"
-          multiple
-          dense
-          use-chips
-          stack-label
-          label="Slices"
-          class="q-ma-sm outline rounded-borders"
-          style="user-select: none; outline-width: thin"
-        >
-          <template v-slot:selected-item="scope">
-            <q-chip
-              dense
-              :tabindex="scope.tabindex"
-              class="q-mr-xs"
-              @mouseenter="updateFullSlicePath(scope.opt)"
-            >
-              <q-tooltip anchor="top right" :offset="[30, 30]" >{{ fullSlicePath }}</q-tooltip>
-            <!-- color="white"
-            text-color="secondary" -->
-              {{ scope.opt.name }}
-            </q-chip>
-          </template>
-        </q-select>
+        <q-card-section class="dense items-center">
+          <q-select
+            filled
+            v-model="viewDocumentDialog.document.slices"
+            multiple
+            dense
+            use-chips
+            stack-label
+            label="Slices"
+            class="q-ma-sm outline rounded-borders"
+            style="user-select: none; outline-width: thin"
+          >
+            <template v-slot:selected-item="scope">
+              <q-chip
+                dense
+                :tabindex="scope.tabindex"
+                class="q-mr-xs"
+                @mouseenter="updateFullSlicePath(scope.opt)"
+              >
+                <q-tooltip anchor="top right" :offset="[30, 30]" >{{ fullSlicePath }}</q-tooltip>
+              <!-- color="white"
+              text-color="secondary" -->
+                {{ scope.opt.name }}
+              </q-chip>
+            </template>
+          </q-select>
+        </q-card-section>
         <q-card-actions align="right">
           <q-btn class="bg-secondary text-white q-mr-xs" glossy label="Edit" @click="viewDocumentDialog.on = false; editDocument(viewDocumentDialog.document)"/>
           <q-btn class="bg-secondary text-white" glossy label="Done" @click="viewDocumentDialog.on = false"/>

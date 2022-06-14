@@ -18,12 +18,19 @@
     <q-field outlined dense class="q-mb-sm">
       <div class="self-center no-outline" tabindex="0">{{ props.data.url }}</div>
     </q-field>
+    <q-field outlined dense class="q-mb-sm">
+      <div class="self-center no-outline" tabindex="0">{{ (props.data.on ? 'Enabled' : 'Disabled') + ' / ' + (props.data.repeat.on ? 'Repeating' : 'OneShot')  }}</div>
+    </q-field>
+    <q-field outlined dense>
+      <div class="self-center no-outline" tabindex="0">{{ 'Last occured at ' + format(new Date(props.data.lastTick * 1000), 'DD/MM/YY HH:mm:ss') }}</div>
+    </q-field>
   </q-card-section>
 </template>
 
 <script setup>
 
 import sfinx from '@/sfinx'
+import { format } from 'fecha'
 
 const props = defineProps({
   data: {
