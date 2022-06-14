@@ -32,4 +32,5 @@ misc:
  - create main Slices component (reuse it in sliceselect)
  - notify options
    - notify me before
+ - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
  - add bot command "view next N events" in telegram

@@ -117,7 +117,7 @@ const getDefaults = () => {
 
 onMounted(() => {
   if (!props.data.edit)
-    props.data.document = Object.assign(props.data.document, getDefaults())
+    props.data.document = getDefaults()
   shown.value = true
   setTimeout(() => noteNameRef.value.focus(), 10)
 })
@@ -125,11 +125,7 @@ onMounted(() => {
 const emit = defineEmits(['done'])
 
 const process = () => {
-  let note = {
-    _key: props.data.edit ? props.data.document._key : undefined,
-    data: { type: 'note', ...props.data.document },
-    slices: props.data.document.slices
-  }
+  let note = { type: 'note', ...props.data.document }
   // logger.trace('newOrEditNote: process: ' + logger.json(note))
   emit('done', note)
 }

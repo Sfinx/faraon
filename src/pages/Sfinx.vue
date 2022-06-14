@@ -161,7 +161,7 @@
           <div @click="showSliceSelectionDialog = true">
           <q-select
             filled
-            v-model="newOrEditDocumentDialog.document.slices"
+            v-model="newOrEditDocumentDialog.slices"
             multiple
             dense
             use-chips
@@ -389,12 +389,22 @@ const editDocument = (doc) => {
 const newOrEditDocument = (type, edit, document) => {
   let inSlices = getSlicesNames(document)
   newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
-  if (!documentsFilter.orphans)
+  if (!documentsFilter.orphans || !edit)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
-  Object.assign(newOrEditDocumentDialog, { on: true, type, edit, document: {...document } })
+  // remove reactivity from slices so no GetDocuments will be triggered
+  let slices = []
+  for (let s of document.slices)
+    slices.push(Object.assign({}, s))
+  if (!edit)
+    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices })
+  else
+    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices, document })
 }
 
 const newOrEditDocumentDone = (doc) => {
+  // remove unneeded data from document
+  delete doc.slices
+  doc = Object.assign({}, { data:doc, slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
     refreshDocuments()
     documentsSelected.value = []
@@ -499,18 +509,18 @@ const sliceName = ref(null)
 const sliceDescription = ref(null)
 const plotlyRef = ref(null)
 
-const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.document.slices.length = 0
+const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0
 
 const sliceSelected = slice => {
   let name = slice.label.substr(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
-  for (let s of newOrEditDocumentDialog.document.slices) {
+  for (let s of newOrEditDocumentDialog.slices) {
     if (s.id == slice.id) {
       $q.notify('Slice \'' + name + '\' already assigned')
       return
     }
   }
-  newOrEditDocumentDialog.document.slices.push({
+  newOrEditDocumentDialog.slices.push({
     name,
     id: slice.id
   })
