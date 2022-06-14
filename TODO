@@ -1,6 +1,4 @@
  - add new documents types
-	- event
-	  - send notify to telegram
 	- file
 	  - types
 	    - ebook/sound/image

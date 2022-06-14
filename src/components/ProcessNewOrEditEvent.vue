@@ -79,7 +79,7 @@
 
 import logger from '@/logger'
 import sfinx from '@/sfinx'
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
@@ -120,6 +120,8 @@ const getDefaults = () => {
     on: true
   }
 }
+
+watch(() => [props.data.document.from, props.data.document.to, props.data.document.repeat.on, props.data.document.on], (w, wprev) => props.data.document.lastTick = null)
 
 onMounted(() => {
   if (!props.data.edit)
