@@ -194,7 +194,7 @@
     <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="min-width: 33vw;">
         <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
-          <q-toolbar-title>{{ 'View \'' + viewDocumentDialog.document.name + '\'' }}</q-toolbar-title>
+          <q-toolbar-title>{{ 'View ' + sfinx.getFullDocumentType(viewDocumentDialog.document) +' \'' + viewDocumentDialog.document.name + '\'' }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs">
@@ -210,15 +210,15 @@
           label="Slices"
           class="q-ma-sm outline rounded-borders"
           style="user-select: none; outline-width: thin"
-          @mouseenter="updateFullSlicePath(scope.opt)"
         >
           <template v-slot:selected-item="scope">
             <q-chip
               dense
               :tabindex="scope.tabindex"
               class="q-mr-xs"
+              @mouseenter="updateFullSlicePath(scope.opt)"
             >
-              <q-tooltip anchor="top right" :offset="[30, 30]" >{{ fullSlicePath(scope.opt) }}</q-tooltip>
+              <q-tooltip anchor="top right" :offset="[30, 30]" >{{ fullSlicePath }}</q-tooltip>
             <!-- color="white"
             text-color="secondary" -->
               {{ scope.opt.name }}

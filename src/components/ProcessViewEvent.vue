@@ -1,0 +1,42 @@
+
+<template>
+  <q-card-section class="items-center" >
+    <q-field outlined dense class="q-mb-sm">
+      <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
+    </q-field>
+    <q-field outlined dense class="q-mb-sm">
+      <div class="self-center no-outline" tabindex="0">{{ props.data.description }}</div>
+    </q-field>
+    <div class="row justify-between q-mb-sm">
+      <q-field :label="'From: ' + props.data.from" style="width: 35%" outlined dense>
+        <div class="self-center no-outline" tabindex="0"/>
+      </q-field>
+      <q-field label="To" style="width: 35%" outlined dense>
+        <div class="self-center no-outline" tabindex="0">{{ '    ' + props.data.to }}</div>
+      </q-field>
+    </div>
+    <q-field outlined dense class="q-mb-sm">
+      <div class="self-center no-outline" tabindex="0">{{ props.data.url }}</div>
+    </q-field>
+  </q-card-section>
+</template>
+
+<script setup>
+
+import sfinx from '@/sfinx'
+
+const props = defineProps({
+  data: {
+    type: Object
+  }
+})
+
+</script>
+
+<style scoped>
+
+.q-card__section--vert {
+  padding: 3px;
+}
+
+</style>

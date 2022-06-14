@@ -13,11 +13,11 @@
 
 misc:
 
- - implement multiple documents editing (the same slices only)
  - add slices & documents search
   - in sliceselect as paths suggestions
  - add voice search (read the book)
  - add encryption to documents
+ - implement multiple documents slices editing (all must have the same slices only)
  - implement slice semantics (json-ld)
  - implement basic AI agents:
    - watcher
@@ -30,5 +30,6 @@ misc:
  - create main Slices component (reuse it in sliceselect)
  - notify options
    - notify me before
- - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
  - add bot command "view next N events" in telegram
+ - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
+ - make viewdocuments as readonly versions of newedit with edit buton ???
