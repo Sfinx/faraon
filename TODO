@@ -1,9 +1,6 @@
  - add new documents types
 	- event
-	  - y/m/d h:m:s
-	  - trigger: none/once/periodically: { yearly, monthly, etc. }
-	  - notify options
-	    - send to telegram
+	  - send notify to telegram
 	- file
 	  - types
 	    - ebook/sound/image
@@ -31,5 +28,8 @@ misc:
  - switch note editor to https://github.com/flyween/vue3-quill
  - write automated tests (puppeteer based)
  - transact edit/delete operations in DB
- - add div zoom by scroll/pan event
+ - add div zoom by scroll/pan event to slices
  - create main Slices component (reuse it in sliceselect)
+ - notify options
+   - notify me before
+ - add bot command "view next N events" in telegram

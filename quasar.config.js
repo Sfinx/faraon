@@ -90,8 +90,8 @@ module.exports = configure(function (/* ctx */) {
       port: 9000,
       // https: true,
       https: {
-        key: fs.readFileSync('../be/certs/key.pem'),
-        cert: fs.readFileSync('../be/certs/cert.pem')
+        key: fs.readFileSync('../sfinxd/certs/key.pem'),
+        cert: fs.readFileSync('../sfinxd/certs/cert.pem')
       },
       open: false // opens browser window automatically
     },

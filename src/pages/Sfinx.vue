@@ -74,7 +74,7 @@
             @selection="onDocumentSelection"
             :selected-rows-label="getDocumentSelectedString"
             :rows-per-page-options="[0]"
-            row-key="id"
+            row-key="_key"
             @row-click="selectDocument"
             @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document })"
             no-data-label="No documents yet"
@@ -148,16 +148,17 @@
     </q-dialog>
 
     <q-dialog v-model="newOrEditDocumentDialog.on" persistent transition="scale">
-      <q-card class="q-dialog-plugin" style="user-select: none; min-width: 75%; min-height: 40%">
+      <q-card class="q-dialog-plugin" style="user-select: none; min-width: fit-content; min-height: 40%">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ newOrEditDocumentDialog.title }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
-        <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: 20vh">
+        <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: fit-content;">
             <process-document ref="processDocumentRef" :type="newOrEditDocumentDialog.type" op="NewOrEdit" :data="newOrEditDocumentDialog"
               @error="e => { $q.$notify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="newOrEditDocumentDone"/>
         </q-card-section>
-        <div class="q-ma-sm" @click="showSliceSelectionDialog = true">
+        <q-card-section class="dense items-center q-pb-xs">
+          <div @click="showSliceSelectionDialog = true">
           <q-select
             filled
             v-model="newOrEditDocumentDialog.document.slices"
@@ -182,7 +183,8 @@
             </template>
           </q-select>
         </div>
-        <q-card-actions align="between">
+        </q-card-section>
+        <q-card-actions class="dense q-mb-sm q-mx-sm" align="between">
           <q-btn class="bg-secondary text-white" glossy label="Clear Slices" @click="newOrEditDocumentClearSlices()"/>
           <q-btn class="bg-secondary text-white" glossy label="Done" @click="processDocumentRef.processDocument()"/>
         </q-card-actions>
@@ -308,7 +310,7 @@ const documentColumns = [
   },
   { name: 'ctime', align: 'center', label: 'Stamp', field: 'ctime', sortable: true, format: (val, row) => {
       let d = new Date(val * 1000)
-      return format(d, 'DD/MM/YY hh:mm:ss')
+      return format(d, 'DD/MM/YY HH:mm:ss')
     }
   }
 ]
@@ -355,7 +357,7 @@ const deleteTheDocument = () => {
 const deleteDocument = () => {
   let docs = []
   for (let d of documentsSelected.value)
-    docs.push(d.id)
+    docs.push(d._key)
   sfinx.sendMsg('DeleteDocument', res => {
     if (res.e)
       $q.$notify(res.e)
@@ -417,7 +419,7 @@ const newOrEditDocumentDone = (doc) => {
 
 const documentPresent = (row) => {
   for (let [idx, r] of documentsSelected.value?.entries()) {
-    if (r.id == row.id)
+    if (r._key == row._key)
       return idx
   }
   return -1

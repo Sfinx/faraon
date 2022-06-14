@@ -1,10 +1,10 @@
 
 <template>
-  <q-card-section v-if="shown" class="col items-center">
+  <q-card-section v-if="shown" class="items-center">
     <q-input v-model="props.data.document.name" outlined label-color="black" label="Note Name" ref="noteNameRef" @keydown.enter.prevent="noteDescriptionRef.focus()" class="q-mb-sm"/>
     <q-editor
       ref="noteDescriptionRef"
-      class="q-mb-sm"
+      class="q-mt-lg"
       v-model="props.data.document.description"
       :dense="$q.screen.lt.md"
       height="49vh"
@@ -108,11 +108,16 @@ const props = defineProps({
   }
 })
 
-onMounted(() => {
-  if (!props.data.edit) {
-    props.data.document.description = ''
-    props.data.document.name = ''
+const getDefaults = () => {
+  return {
+    name: '',
+    description: ''
   }
+}
+
+onMounted(() => {
+  if (!props.data.edit)
+    props.data.document = Object.assign(props.data.document, getDefaults())
   shown.value = true
   setTimeout(() => noteNameRef.value.focus(), 10)
 })
@@ -121,12 +126,8 @@ const emit = defineEmits(['done'])
 
 const process = () => {
   let note = {
-    id: props.data.edit ? props.data.document.id : undefined,
-    data: {
-      type: 'note',
-      name: props.data.document.name,
-      description: props.data.document.description,
-    },
+    _key: props.data.edit ? props.data.document._key : undefined,
+    data: { type: 'note', ...props.data.document },
     slices: props.data.document.slices
   }
   // logger.trace('newOrEditNote: process: ' + logger.json(note))
