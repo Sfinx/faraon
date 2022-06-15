@@ -516,7 +516,7 @@ const plotlyRef = ref(null)
 const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0
 
 const sliceSelected = slice => {
-  let name = slice.label.substr(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
+  let name = slice.label.substring(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
   for (let s of newOrEditDocumentDialog.slices) {
     if (s.id == slice.id) {
@@ -779,7 +779,7 @@ const rightClick = ev => {
 const plotlyHover = e => {
   let p = e.points[0]
   currentHoveredSlice = {
-    name: p.label?.substr(0, p.label.lastIndexOf(sfinx.sliceSeparator)),
+    name: p.label?.substring(0, p.label.lastIndexOf(sfinx.sliceSeparator)),
     id: p.id,
     description: p.customdata.description,
     customdata: p.customdata

@@ -5,12 +5,10 @@ import { reactive } from 'vue'
 
 const storeObj = {
  loggedUser: null,
- rebooting: false,
- capturing: false,
- settings: {},
  total_slices: 0,
  total_documents: 0,
- movingSlice: null
+ movingSlice: null,
+ authToken: null
 }
 
 const store = reactive({

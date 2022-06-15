@@ -216,8 +216,8 @@ const login = () => {
       let u = {
         footer: user.value
       }
-      $q.$store.total_slices = res.d.total_slices
       $q.$store.loggedUser = u
+      $q.$store.authToken = res.d.authToken
       showLoginDlg.value = false
       $q.$notify('Logged as ' + u.footer)
       router.push('/sfinx', {})
@@ -239,7 +239,7 @@ const showLogin = () => {
 
 const connected = res => {
   setWaitIcon(false)
-  logger.info('connected to sfinx server with API v' + res.version + ', ' + res.build_type + ' build: ' + res.build + ', sid: ' + res.sid)
+  logger.info('connected to sfinx server: API v' + res.version + ', ' + res.build + ', sid: ' + res.sid)
   sid = res.sid
   showLogin()
 }
