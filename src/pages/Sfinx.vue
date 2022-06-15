@@ -1,5 +1,7 @@
+
 <template>
   <q-page class="flex flex-center" style="user-select: none;">
+
     <q-resize-observer @resize="onResize"/>
 
     <!-- main slices tree -->
@@ -279,7 +281,6 @@ import selectSlice from 'components/SelectSlice.vue'
 import ProcessDocument from 'components/ProcessDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
-import { app } from '@/boot/app.js'
 
 const $q = useQuasar()
 
@@ -489,6 +490,7 @@ const onDocumentSelection = ({ rows, added, evt }) => {
 const documentRows = ref([])
 
 let currentHoveredSlice = {}
+
 const getSliceInitial = () => {
   return {
     name: '',
@@ -624,9 +626,7 @@ watch(showMenu, shown => {
   menuSlice.name = (currentHoveredSlice.id == 1) ? null : currentHoveredSlice.name
 })
 
-const documentsTitle = computed(() => {
-  return documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsFilter) + ']'))
-})
+const documentsTitle = computed(() => documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsFilter) + ']')))
 
 const getSlicesNames = d => {
   let label = d.slices.length ? '' : 'Dao'

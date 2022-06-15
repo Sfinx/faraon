@@ -1,6 +1,5 @@
 
 import logger from '@/logger'
-import pjson from '../package.json'
 import { app } from '@/boot/app.js'
 import { v4 as uuidv4 } from 'uuid'
 import { sha512 } from '@/crypto'
@@ -10,7 +9,7 @@ let wss, _connected, _disconnected
 let dispatch = {}
 let authAttempted
 let api_version = '0.0.1'
-let endpoint = 'wss://' + location.hostname + ':19081/sfinx/' + api_version
+let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
 
 export default {
   updateTimeout: 250,

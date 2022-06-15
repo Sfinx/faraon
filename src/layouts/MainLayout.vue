@@ -10,14 +10,14 @@
           round
           icon="menu"
           aria-label="Menu"
-          @click="toggleLeftDrawer"
+          @click="leftDrawerOpen.value = !leftDrawerOpen.value"
         />
         <q-toolbar-title>Faraon</q-toolbar-title>
         <q-btn
             flat
             dense
             icon="mdi-account-key"
-            @click="showProfileDialog"
+            @click="showSimpleProfileDialog"
         />
       </q-toolbar>
     </q-header>
@@ -73,7 +73,7 @@
 
     </q-drawer>
 
-    <q-dialog v-model="loginDlg" persistent transition="scale">
+    <q-dialog v-model="showLoginDlg" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>Sfinx Login</q-toolbar-title>
@@ -81,8 +81,8 @@
         </q-toolbar>
         <q-card-section class="col items-center">
           <form>
-          <q-input autocomplete="username" maxlength=16 v-model="user" outlined label-color="black" label="Username" ref="loginUser" @keydown.enter.prevent="loginPass.focus()" class="q-mb-sm"/>
-          <q-input autocomplete="current-password" v-model="pass" outlined :type="isPwd ? 'password' : 'text'" label-color="black" label="Password" ref="loginPass" @keydown.enter.prevent="login" class="q-mb-sm">
+          <q-input autocomplete="username" maxlength=16 v-model="user" outlined label-color="black" label="Username" ref="loginUserRef" @keydown.enter.prevent="loginPassRef.focus()" class="q-mb-sm"/>
+          <q-input autocomplete="current-password" v-model="pass" outlined :type="isPwd ? 'password' : 'text'" label-color="black" label="Password" ref="loginPassRef" @keydown.enter.prevent="login" class="q-mb-sm">
             <template v-slot:append>
               <q-icon
                 :name="isPwd ? 'visibility_off' : 'visibility'"
@@ -129,20 +129,20 @@ import emitter from 'tiny-emitter/instance'
 
 const router = useRouter()
 const $q = useQuasar()
+
+const loginUserRef = ref(null)
+const loginPassRef = ref(null)
+
 const leftDrawerOpen = ref(false)
-const toggleLeftDrawer = () => leftDrawerOpen.value = !leftDrawerOpen.value
 const waitIcon = ref(false)
+const showLoginDlg = ref(false)
+const isPwd = ref(true)
+const debugKey = ref(null)
 const user = ref('')
 const pass = ref('')
-const isPwd = ref(true)
-const loginDlg = ref(false)
-const loginUser = ref(null)
-const loginPass = ref(null)
-const debugKey = ref('')
-const sid = ref('')
-const sfinxHost = ref('localhost')
+let sid
 
-function showProfileDialog () {
+function showSimpleProfileDialog () {
   $q.dialog({
     title: 'Profile',
     message: 'Set Telegram Bot token',
@@ -166,15 +166,14 @@ function showProfileDialog () {
   })
 }
 
-watch(loginDlg, (loginDlg, prevLoginDlg) => {
-  if (loginDlg)
+watch(showLoginDlg, (showLoginDlg, prevshowLoginDlg) => {
+  if (showLoginDlg)
    window.addEventListener('keydown', keyDown)
   else
    window.removeEventListener('keydown', keyDown)
 })
 
-const logInfo = computed(() => $q.$store.loggedUser ? ('Logged as ' + $q.$store.loggedUser.footer + ' to sfinx://' + sfinxHost.value +' [Total ' + $q.$store.total_slices + ' slices, '
-  + $q.$store.total_documents + ' documents]') : 'Not logged in')
+const logInfo = computed(() => $q.$store.loggedUser ? ('Logged as ' + $q.$store.loggedUser.footer + ' to sfinx://' + location.hostname +' [Total ' + $q.$store.total_slices + ' slices, ' + $q.$store.total_documents + ' documents]') : 'Not logged in')
 
 const keyDown = e => debugKey.value = e.key
 
@@ -195,8 +194,8 @@ const validate = isReg => {
 }
 
 const login = () => {
-  if (!sid.value || waitIcon.value || !validate()) {
-   if (!sid.value)
+  if (!sid || waitIcon.value || !validate()) {
+   if (!sid)
      $q.$notify('Not connected')
    return
   }
@@ -219,41 +218,45 @@ const login = () => {
       }
       $q.$store.total_slices = res.d.total_slices
       $q.$store.loggedUser = u
-      loginDlg.value = false
+      showLoginDlg.value = false
       $q.$notify('Logged as ' + u.footer)
       router.push('/sfinx', {})
     } // login ok
   })
 }
+
 const showLogin = () => {
   isPwd.value = true
   user.value = 'rus'
   pass.value = 'pass'
-  setTimeout(() => { loginUser.value.focus() }, 20)
-  loginDlg.value = true
+  setTimeout(() => { loginUserRef.value.focus() }, 20)
+  showLoginDlg.value = true
   // debug
   setTimeout(() => {
     login()
   }, 100)
 }
+
 const connected = res => {
   setWaitIcon(false)
   logger.info('connected to sfinx server with API v' + res.version + ', ' + res.build_type + ' build: ' + res.build + ', sid: ' + res.sid)
-  sid.value = res.sid
+  sid = res.sid
   showLogin()
 }
+
 const disconnected = msg => {
   if ($q.$store.loggedUser)
     $q.$notify($q.$store.loggedUser.footer + ' logged out')
   $q.$store.loggedUser = null
-  sid.value = null
+  sid = null
   debugKey.value = null
   if (!msg)
    router.push('/', {})
 }
+
 onMounted(() => {
   disconnected(true)
-  setWaitIcon(true, 'Connecting to server ...')
+  setWaitIcon(true, 'Connecting to sfinx://' + location.hostname + ' ...')
   sfinx.connect(connected, disconnected)
 })
 

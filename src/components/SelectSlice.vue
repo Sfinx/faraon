@@ -1,5 +1,4 @@
 
-
 <template>
   <q-resize-observer @resize="resize"/>
   <div :id="props.id" ref="plotly" @select="select" style="visibility: hidden"/>
@@ -23,6 +22,7 @@ const $q = useQuasar()
 const attrs = useAttrs()
 
 const plotly = ref(null)
+
 const def_options = {
   locale: 'ru',
   displaylogo: false,
@@ -32,6 +32,7 @@ const def_options = {
   logging: 2,
   modeBarButtonsToRemove: ['toImage']
 }
+
 const defaultSunburstData = {
   type: 'sunburst', // sunburst icicle treemap
   outsidetextfont: { size: 20, color: '#377eb8' },
@@ -67,6 +68,7 @@ const props = defineProps({
 const data = ref([])
 let innerLayout = { ...props.layout }
 let selectedSliceId = '1'
+let dataRoot
 
 const options = computed(() => {
   const optionsFromAttrs = Object.keys(attrs).reduce((acc, key) => {
@@ -102,8 +104,6 @@ const init = (reinit) => {
   if (!reinit)
     setTimeout(() => refresh(), 100)
 }
-
-let dataRoot
 
 const select = e => {
   let p = e?.points??[0]
@@ -181,7 +181,7 @@ const deinit = (umounted) => {
 }
 
 const toDao = () => {
-  if (dataRoot != 1)
+  if (dataRoot != '1')
     refresh('1')
 }
 

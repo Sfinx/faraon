@@ -1,3 +1,4 @@
+
 <template>
   <q-page class="q-pa-xl">
     <q-card class="q-dialog-plugin" style="user-select: none; height: 100%; min-width: 100%;">
@@ -6,9 +7,9 @@
       </q-toolbar>
       <div class="q-pa-sm q-ml-md">
         <h6>
-        <p>Slice selection is performed with holding Shift</p>
-        <p>Add slice to selection is performed with holding Ctrl</p>
-        <p>Double click in documents browser to view document</p>
+        <p>Slice selection is performed with holding Shift & click</p>
+        <p>Add new slice to selection is performed with holding Ctrl & click</p>
+        <p>Double click in documents browser to view the document</p>
       </h6>
       </div>
     </q-card>

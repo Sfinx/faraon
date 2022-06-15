@@ -86,13 +86,9 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      host: 'localhost',
-      port: 9000,
-      // https: true,
-      https: {
-        key: fs.readFileSync('../sfinxd/certs/key.pem'),
-        cert: fs.readFileSync('../sfinxd/certs/cert.pem')
-      },
+      // host: 'localhost',
+      port: 19080,
+      https: false,
       open: false // opens browser window automatically
     },
 
