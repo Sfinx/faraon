@@ -1,10 +1,4 @@
  - add new documents types:
-	- file
-	  - types
-	    - ebook/sound/image
-	    - collection flag (add entries/directories)
-	  - play collections
-	  - edit collections, implement skip flag for entry
   - persons (can be combination of note/event/file sliced with Persons ??)
     - create & attach birthday event
 	- todo
@@ -28,6 +22,12 @@ misc:
  - transact edit/delete operations in DB
  - add div zoom by scroll/pan event to slices
  - create main Slices component (reuse it in sliceselect)
+ - add to file:
+	  - forced types
+	    - ebook/sound/image
+	  - collection flag (add entries/directories)
+			- play collections
+			- edit collections, implement skip flag for entry
  - notify options:
    - notify me before
  - add bot command "view next N events" in telegram

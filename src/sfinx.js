@@ -4,6 +4,7 @@ import { app } from '@/boot/app.js'
 import { v4 as uuidv4 } from 'uuid'
 import { sha512 } from '@/crypto'
 import { store } from '@/boot/store'
+import * as tus from 'tus-js-client'
 
 let wss, _connected, _disconnected
 let dispatch = {}
@@ -12,6 +13,75 @@ let api_version = '0.0.1'
 let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
 
 export default {
+  async csum (file, algo) {
+    const buffer = await file.arrayBuffer()
+    const hash = await crypto.subtle.digest(algo, buffer)
+    return Array.from(new Uint8Array(hash)).map(byte => byte.toString(16).padStart(2, '0')).join('')
+  },
+  uploadPause(upload, cb, terminate) {
+    upload.abort(terminate).then(() => cb()).catch((err) => logger.error('uploadPause error: ' + err))
+  },
+  uploadResume(upload, cb) {
+    if (!upload)
+      return
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length) {
+        let prevUrl = upload._req._url, found
+        for (let pu of previousUploads) {
+          if (prevUrl == pu.uploadUrl) {
+            found = pu
+            break
+          }
+        }
+        if (found) {
+          cb(true)
+          upload.resumeFromPreviousUpload(found)
+        } else
+            cb()
+      } else
+          cb()
+      upload.start()
+    }).catch((e) => {
+      logger.warn('uploadResume error: ' + e)
+    })
+  },
+  async uploadFile(file, cb) {
+    // if (file.size > 100 * 1024 * 1024)
+    //   return cb('Too big file (> 100Mb)')
+    let now = () => (new Date().getTime()) / 1000
+    let started = now()
+    let headers = { user: store.loggedUser.footer, authToken: store.authToken, name: file.name, type: file.type, csum: await this.csum(file, 'SHA-256') }
+    let upload = new tus.Upload(file, {
+      endpoint: 'https://' + location.hostname + '/uploads/',
+      headers,
+      chunkSize: 8 * 1024 * 1024,
+      uploadDataDuringCreation: true,
+      parallelUploads: 1,
+      retryDelays: [0, 1000, 2000],
+      onSuccess: () => cb(null, null, (now() - started).toFixed(2)),
+      onError: err => cb('upload: failed for file:' + file.name + ' because of ' + err.toString()),
+      onProgress: (bytesUploaded, bytesTotal) => cb(null, (bytesUploaded / bytesTotal * 100).toFixed(2), null),
+      onShouldRetry: (err, retryAttempt, options) => {
+        let status = err.originalResponse ? err.originalResponse.getStatus() : 0
+        if (status == 403)
+          return false
+        return true
+      }
+    })
+    upload.start()
+    return upload
+  },
+  async file2blob(file) {
+    return new Promise((resolve, reject) => {
+      try {
+        let reader = new FileReader()
+        reader.onload = (e) => resolve(new Blob([new Uint8Array(e.target.result)], { type: file.type }))
+        reader.readAsArrayBuffer(file)
+      } catch(e) {
+          reject(e)
+      }
+    })
+  },
   updateTimeout: 250,
   sliceSeparator: '|',
   getDocumentType(type) {
@@ -104,18 +174,11 @@ export default {
         logger.error('Sfinx: connect error: ' + e.message)
       return
     }
-    // wss.stop_heartbeat = () => {
-    //   if (wss.heartbeat_interval)
-    //     clearInterval(wss.heartbeat_interval)
-    //   wss.heartbeat_interval = null
-    //   wss.missed_heartbeats = 0
-    // }
     wss.onopen = e => {
       if (app.parameters.debug)
         logger.debug('Sfinx: ws connected')
     }
     wss.onclose = e => {
-      // wss.stop_heartbeat()
       let msg = 'Connection closed: ' + (e.reason ? (e.reason + ', ') : '') + 'code: ' + e.code
       // iterate over dispatch callbacks and trigger them with error
       for (const [key, value] of Object.entries(dispatch)) {
@@ -165,25 +228,7 @@ export default {
           logger.error('Sfinx: closing: Invalid message: ' + e.data)
         wss.close(4103, 'Invalid message')
       } else {
-          // if (!wss.heartbeat_interval) {
-          //   wss.missed_heartbeats = 0
-          //   wss.heartbeat_interval = setInterval(function () {
-          //     if (wss.readyState !== WebSocket.OPEN)
-          //       return
-          //     try {
-          //       wss.missed_heartbeats++
-          //       if (wss.missed_heartbeats >= 3)
-          //         throw new Error('Sfinx: Too many missed heartbeats')
-          //       wss.send_msg('Ping')
-          //     } catch (e) {
-          //         if (app.parameters.debug)
-          //           logger.error('Sfinx: Heartbeat exception: Closing: ' + e.message)
-          //         wss.close(4103, e.message)
-          //     }
-          //   }, 3000)
-          // }
           if (ro.m === 'Ping') {
-            // wss.missed_heartbeats = 0
             return
           }
           if (!(ro.u in dispatch))

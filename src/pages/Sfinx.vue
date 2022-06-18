@@ -405,13 +405,15 @@ const newOrEditDocument = (type, edit, document) => {
 }
 
 const newOrEditDocumentDone = (doc) => {
+  newOrEditDocumentDialog.on = false
+  if (!doc)
+    return
   // remove unneeded data from document
   delete doc.slices
   doc = Object.assign({}, { data:doc, slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
     refreshDocuments()
     documentsSelected.value = []
-    newOrEditDocumentDialog.on = false
   }
   if (newOrEditDocumentDialog.edit) {
     sfinx.sendMsg('EditDocument', res => {
