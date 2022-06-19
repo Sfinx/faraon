@@ -128,7 +128,7 @@ onMounted(() => {
   setTimeout(() => eventNameRef.value.focus(), 10)
 })
 
-watch(() => [props.data.document?.from, props.data.document?.to, props.data.document?.repeat.on, props.data.document?.on], (w, wprev) => props.data.document.lastTick = null)
+watch(() => [props.data.document?.from, props.data.document?.to, props.data.document?.repeat?.on, props.data.document?.on], (w, wprev) => props.data.document.lastTick = null)
 
 const emit = defineEmits(['done'])
 

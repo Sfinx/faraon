@@ -13,4 +13,7 @@ export default boot(({ app }) => {
  app.config.globalProperties.$q.$notify = (msg) => {
    app.config.globalProperties.$q.notify({ message: msg })
  }
+ app.config.globalProperties.$q.$enotify = (msg) => {
+  app.config.globalProperties.$q.notify({ message: msg, color: 'red-10' })
+}
 })

@@ -13,6 +13,55 @@ let api_version = '0.0.1'
 let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
 
 export default {
+  getFileTypeCategory(mime) {
+    let categories = [
+      {
+        name: 'image',
+        types: [
+          'image/gif',
+          'image/jpeg',
+          'image/png',
+          'image/svg+xml',
+          'image/tiff',
+          'image/x-ms-bmp',
+          'image/x-portable-anymap',
+          'image/x-portable-bitmap',
+          'image/x-portable-graymap',
+          'image/x-portable-pixmap',
+          'image/x-rgb',
+          'image/x-xbitmap',
+          'image/x-xpixmap'
+        ]
+      },
+      {
+        name: 'ebook',
+        types: [
+          'application/pdf',
+          'application/epub+zip',
+          'image/vnd.djvu'
+        ]
+      },
+      {
+        name: 'office',
+        types: [
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.oasis.opendocument.text',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ]
+      }
+    ]
+    if (mime.startsWith('video/'))
+      return 'video'
+    for (let c of categories) {
+      for (let t of c.types) {
+        if (mime == t)
+          return c.name
+      }
+    }
+    return 'other'
+  },
   async csum (file, algo) {
     const buffer = await file.arrayBuffer()
     const hash = await crypto.subtle.digest(algo, buffer)

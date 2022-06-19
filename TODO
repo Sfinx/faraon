@@ -23,8 +23,6 @@ misc:
  - add div zoom by scroll/pan event to slices
  - create main Slices component (reuse it in sliceselect)
  - add to file:
-	  - forced types
-	    - ebook/sound/image
 	  - collection flag (add entries/directories)
 			- play collections
 			- edit collections, implement skip flag for entry
@@ -33,3 +31,4 @@ misc:
  - add bot command "view next N events" in telegram
  - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
  - make viewdocuments as readonly versions of newedit dialog with hidden edit button ???
+ - use enotify on errors

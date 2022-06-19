@@ -6,7 +6,9 @@
     <div class="row justify-between">
       <q-file v-if="props.data.document.uploaded.on" style="width: 40%" class="q-mt-sm" outlined v-model="file" label="Select File" />
       <q-input style="width: 40%" class="q-mt-sm" v-if="!props.data.document.uploaded.on" v-model="props.data.document.url" outlined label-color="black" label="File Path / URL"/>
-      <q-input style="width: 40%" class="q-mt-sm" v-model="props.data.document.mime" outlined label-color="black" label="File Type"/>
+      <q-input style="width: 40%" class="q-mt-sm" v-model="props.data.document.mime" outlined label-color="black" label="File Type">
+        <q-tooltip anchor="top right" :offset="[30, 30]" >{{ sfinx.getFileTypeCategory(props.data.document.mime) }}</q-tooltip>
+      </q-input>
       <q-toggle class="q-mt-sm dense" v-model="props.data.document.uploaded.on" label="Upload"/>
     </div>
   </q-card-section>

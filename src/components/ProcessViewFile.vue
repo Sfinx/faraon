@@ -1,0 +1,65 @@
+
+<template>
+    <q-field label="Name" stack-label readonly outlined dense class="q-mb-sm">
+      <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
+    </q-field>
+    <q-field label="Description" stack-label readonly outlined dense class="q-mb-sm">
+      <div class="self-center no-outline" tabindex="0">{{ props.data.description }}</div>
+    </q-field>
+    <embed ref="fileRef" :type="props.data.mime" style="width: 100%; min-height: 50vh">
+</template>
+
+<script setup>
+
+import { ref, onMounted } from 'vue'
+import sfinx from '@/sfinx'
+import { useQuasar } from 'quasar'
+import logger from '@/logger'
+
+const $q = useQuasar()
+
+const props = defineProps({
+  data: {
+    type: Object
+  }
+})
+
+const fileRef = ref(null)
+
+onMounted(async () => {
+  let url = 'https://dev.sfinx.in/files/rus/' + props.data.uploaded.name
+  if (props.data.uploaded.on == true && sfinx.getFileTypeCategory(props.data.mime) != 'other') {
+    let response = await fetch(url, {
+      headers: {
+          authtoken: $q.$store.authToken,
+          user: $q.$store.loggedUser.footer,
+          file: props.data.uploaded.name,
+          mime: props.data.mime
+        }
+    })
+    if (response.status == 200) {
+      const body = response.body
+      const reader = body.getReader()
+      let blobParts = []
+      while (1) {
+        const { value, done } = await reader.read()
+        if (done)
+          break
+        blobParts.push(value)
+      }
+      let blob = new Blob(blobParts, { type: props.data.mime })
+      fileRef.value.src = URL.createObjectURL(blob)
+    } else
+      $q.$notifye('View File: Fetch error: ' + response.status)
+  }
+})
+
+</script>
+
+<style scoped>
+
+.q-card__section--vert {
+  padding: 3px;
+}
+
+</style>
