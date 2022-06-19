@@ -1,14 +1,10 @@
  - add new documents types:
-  - persons (can be combination of note/event/file sliced with Persons ??)
-    - create & attach birthday event
 	- todo
-  - know how / knowledge (can be combination of todo)
-	- aim
+ - add slices & documents search:
+  - in sliceselect as paths suggestions
 
 misc:
 
- - add slices & documents search:
-  - in sliceselect as paths suggestions
  - add voice search (read the book)
  - add encryption to documents (master & unique passwords)
  - implement multiple documents slices editing (all must have the same slices only)

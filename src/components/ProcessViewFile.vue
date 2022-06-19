@@ -7,13 +7,14 @@
       <div class="self-center no-outline" tabindex="0">{{ props.data.description }}</div>
     </q-field>
     <embed ref="fileRef" :type="props.data.mime" style="width: 100%; min-height: 50vh">
+    <q-btn dense class="bg-secondary text-white" glossy label="FullScreen" @click="fullscreen()"/>
 </template>
 
 <script setup>
 
 import { ref, onMounted } from 'vue'
 import sfinx from '@/sfinx'
-import { useQuasar, Loading, QSpinnerGears } from 'quasar'
+import { useQuasar, Loading, QSpinnerGears, AppFullscreen } from 'quasar'
 import logger from '@/logger'
 
 const $q = useQuasar()
@@ -26,8 +27,16 @@ const props = defineProps({
 
 const fileRef = ref(null)
 
+const fullscreen = () => {
+  AppFullscreen.request(fileRef.value).then(() => {
+    // $q.$notify('Press F11 to exit fullscreen')
+  }).catch(e => {
+    logger.error('fuillscreen failed' + e.message)
+  })
+}
+
 onMounted(async () => {
-  let url = 'https://dev.sfinx.in/files/rus/' + props.data.uploaded.name
+  let url = 'https://dev.sfinx.in/files/' + $q.$store.loggedUser.footer + '/' + props.data.uploaded.name
   if (props.data.uploaded.on == true && sfinx.getFileTypeCategory(props.data.mime) != 'other') {
     let response = await fetch(url, {
       headers: {
@@ -54,7 +63,7 @@ onMounted(async () => {
       Loading.hide()
       fileRef.value.src = URL.createObjectURL(blob)
     } else
-      $q.$enotify('View File: Fetch error: ' + response.status)
+        $q.$enotify('View File: Fetch error: ' + response.status)
   }
 })
 
