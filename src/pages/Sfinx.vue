@@ -88,7 +88,7 @@
                   class="q-pr-md"
                   style="height: 25px; width: 20px"
                   color="green"
-                  :label="sfinx.getDocumentType(props.value)"
+                  :label="props.value[0].toUpperCase()"
                 ></q-badge>
               </q-td>
             </template>
@@ -287,7 +287,7 @@ const $q = useQuasar()
 const fullSlicePath = ref(null)
 const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
 
-const documentTypes = ['Note', 'File', 'Event', 'Person', 'KnowHow', 'Todo', 'Aim']
+const documentTypes = ['Note', 'File', 'Event', 'Todo']
 
 const maxColumnWidth = 9
 

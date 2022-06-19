@@ -133,9 +133,6 @@ export default {
   },
   updateTimeout: 250,
   sliceSeparator: '|',
-  getDocumentType(type) {
-    return type.at(0).toUpperCase()
-  },
   getFullDocumentType(doc) {
     return doc.type.charAt(0).toUpperCase() + doc.type.slice(1)
   },
