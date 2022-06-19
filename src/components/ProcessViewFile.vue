@@ -13,7 +13,7 @@
 
 import { ref, onMounted } from 'vue'
 import sfinx from '@/sfinx'
-import { useQuasar } from 'quasar'
+import { useQuasar, Loading, QSpinnerGears } from 'quasar'
 import logger from '@/logger'
 
 const $q = useQuasar()
@@ -41,6 +41,9 @@ onMounted(async () => {
       const body = response.body
       const reader = body.getReader()
       let blobParts = []
+      Loading.show({
+        spinner: QSpinnerGears
+      })
       while (1) {
         const { value, done } = await reader.read()
         if (done)
@@ -48,9 +51,10 @@ onMounted(async () => {
         blobParts.push(value)
       }
       let blob = new Blob(blobParts, { type: props.data.mime })
+      Loading.hide()
       fileRef.value.src = URL.createObjectURL(blob)
     } else
-      $q.$notifye('View File: Fetch error: ' + response.status)
+      $q.$enotify('View File: Fetch error: ' + response.status)
   }
 })
 

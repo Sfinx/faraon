@@ -26,6 +26,7 @@ misc:
 	  - collection flag (add entries/directories)
 			- play collections
 			- edit collections, implement skip flag for entry
+		- streaming play of media files (videos)
  - notify options:
    - notify me before
  - add bot command "view next N events" in telegram
