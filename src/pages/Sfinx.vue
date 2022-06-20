@@ -68,7 +68,7 @@
             dense
             class="sticky-header-table"
             style="height: 76%;"
-            ref="documentsTable"
+            ref="documentsTableRef"
             :rows="documentRows"
             :columns="documentColumns"
             selection="multiple"
@@ -244,8 +244,8 @@
         </q-toolbar>
         <q-card-section class="col items-center">
           <form>
-            <q-input v-model="menuSlice.name" outlined label-color="black" label="Slice Name" ref="sliceName" @keydown.enter.prevent="sliceDescription.focus()" class="q-mb-sm"/>
-            <q-input v-model="menuSlice.description" outlined label-color="black" label="Slice Description" ref="sliceDescription" @keydown.enter.prevent="sliceProcess" class="q-mb-sm"/>
+            <q-input v-model="menuSlice.name" outlined label-color="black" label="Slice Name" ref="sliceNameRef" @keydown.enter.prevent="sliceDescriptionRef.focus()" class="q-mb-sm"/>
+            <q-input v-model="menuSlice.description" outlined label-color="black" label="Slice Description" ref="sliceDescriptionRef" @keydown.enter.prevent="sliceProcess" class="q-mb-sm"/>
           </form>
         </q-card-section>
         <q-card-actions align="right">
@@ -284,17 +284,17 @@ import { format } from 'fecha'
 
 const $q = useQuasar()
 
-const fullSlicePath = ref(null)
-const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
-
 const documentTypes = ['Note', 'File', 'Event', 'Todo']
 
-const maxColumnWidth = 9
+const fullSlicePath = ref(null)
+const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
 
 const stripHTML = (html) => {
   let doc = new DOMParser().parseFromString(html, 'text/html')
   return doc.body.textContent || ''
 }
+
+const maxColumnWidth = 9
 
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
@@ -318,13 +318,38 @@ const documentColumns = [
   }
 ]
 
+const getSliceDefaults = () => {
+  return {
+    name: '',
+    description: '',
+    id: 0,
+    customdata: { }
+  }
+}
+
+const maxDepth = 3
+let selectedSliceId = '1'
+let dataRoot
+let currentHoveredSlice = {}
+
+const documentlastIndex = ref(null)
+const plotlyData = ref(null)
+const showSliceSelectionDialog = ref(false)
+const showMenu = ref(false)
+const showNewOrEditSliceDialog = ref(false)
+const sliceDialogTitle = ref('')
+const documentRows = ref([])
+const documentsSelected = ref([])
+const menuSlice = reactive(getSliceDefaults())
+let viewDocumentDialog = reactive({ on: false, document: null })
+
+// refs
 const selectSliceRef = ref(null)
 const processDocumentRef = ref(null)
-const documentsTable = ref(null)
-const documentsSelected = ref([])
-const documentlastIndex = ref(null)
-
-let viewDocumentDialog = reactive({ on: false, document: null })
+const sliceNameRef = ref(null)
+const sliceDescriptionRef = ref(null)
+const plotlyRef = ref(null)
+const documentsTableRef = ref(null)
 
 let deleteConfirm = reactive({
   on: false,
@@ -452,11 +477,11 @@ const getDocumentSelectedString = () => documentsSelected.value.length === 0 ? '
 
 const onDocumentSelection = ({ rows, added, evt }) => {
 
-  if (rows.length === 0 || documentsTable.value === void 0)
+  if (rows.length === 0 || documentsTableRef.value === void 0)
    return
 
   const row = rows[0]
-  const filteredSortedRows = documentsTable.value.filteredSortedRows
+  const filteredSortedRows = documentsTableRef.value.filteredSortedRows
   const rowIndex = filteredSortedRows.indexOf(row) // documentPresent(row) ??
   const localLastIndex = documentlastIndex.value
 
@@ -488,32 +513,6 @@ const onDocumentSelection = ({ rows, added, evt }) => {
   for (let i = from; i <= to; i += 1)
     operateSelection(filteredSortedRows[i])
 }
-
-const documentRows = ref([])
-
-let currentHoveredSlice = {}
-
-const getSliceInitial = () => {
-  return {
-    name: '',
-    description: '',
-    id: 0,
-    customdata: { }
-  }
-}
-
-const selectSliceReturnToDao = ref(0)
-const showSliceSelectionDialog = ref(false)
-
-const maxDepth = 3
-const menuSlice = reactive(getSliceInitial()) // it always doing two way binding !
-const showMenu = ref(false)
-const showNewOrEditSliceDialog = ref(false)
-const sliceDialogTitle = ref('')
-// refs
-const sliceName = ref(null)
-const sliceDescription = ref(null)
-const plotlyRef = ref(null)
 
 const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0
 
@@ -551,7 +550,7 @@ const onResize = () => {
     selectSliceRef.value.resize()
 }
 
-const getDocumentsFilterDefault = () => {
+const getDocumentsFilterDefaults = () => {
   return {
     orphans: false,
     all: false,
@@ -560,7 +559,7 @@ const getDocumentsFilterDefault = () => {
     }
 }
 
-let documentsFilter = reactive(getDocumentsFilterDefault())
+let documentsFilter = reactive(getDocumentsFilterDefaults())
 
 const documentsSelect = reactive({
   all: false,
@@ -712,12 +711,12 @@ const newOrEditSlice = edit => {
   sliceDialogTitle.value = edit ? ('Edit ' + menuSlice.name + ' Slice') : ('New Slice in ' + (menuSlice.name ? menuSlice.name : 'Dao'))
   if (!edit) {
     let id = menuSlice.id
-    Object.assign(menuSlice, getSliceInitial())
+    Object.assign(menuSlice, getSliceDefaults())
     menuSlice.id = id
   } else if (menuSlice.id == '1')
            return
   showNewOrEditSliceDialog.value = true
-  setTimeout(() => sliceName.value.focus(), 50)
+  setTimeout(() => sliceNameRef.value.focus(), 50)
 }
 
 const plotlyDoubleClick = ev => {
@@ -794,9 +793,6 @@ const plotlyUnHover = e => {
   // console.log('*** plotlyUnHover', currentHoveredSlice)
   currentHoveredSlice = {}
 }
-
-let selectedSliceId = '1'
-let dataRoot
 
 // plotlyData is array so the only way to trigger change is to assign to it
 const setRootSlice = root => {
@@ -890,8 +886,6 @@ const selectSliceLayout = reactive({
   height: ($q.screen.height/100) * 71
 })
 
-const plotlyData = ref(null)
-
 const defaultSunburstData = {
   type: 'sunburst', // sunburst icicle treemap
   outsidetextfont: { size: 20, color: '#377eb8' },
@@ -923,7 +917,7 @@ onMounted(() => {
     if (dataRoot != '1')
       refreshSlices('1')
     else {
-      Object.assign(documentsFilter, getDocumentsFilterDefault())
+      Object.assign(documentsFilter, getDocumentsFilterDefaults())
       setRootSlice()
       refreshDocuments()
     }
