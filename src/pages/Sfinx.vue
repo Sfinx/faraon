@@ -194,7 +194,7 @@
     </q-dialog>
 
     <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
-      <q-card class="q-dialog-plugin" style="min-width: 33vw;">
+      <q-card class="q-dialog-plugin" style="min-width: 35vw;">
         <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
           <q-toolbar-title>{{ 'View ' + sfinx.getFullDocumentType(viewDocumentDialog.document) +' \'' + viewDocumentDialog.document.name + '\'' }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup/>
@@ -317,15 +317,6 @@ const documentColumns = [
     }
   }
 ]
-
-const getSliceDefaults = () => {
-  return {
-    name: '',
-    description: '',
-    id: 0,
-    customdata: { }
-  }
-}
 
 const maxDepth = 3
 let selectedSliceId = '1'
@@ -512,6 +503,15 @@ const onDocumentSelection = ({ rows, added, evt }) => {
   const to = localLastIndex < rowIndex ? rowIndex : localLastIndex
   for (let i = from; i <= to; i += 1)
     operateSelection(filteredSortedRows[i])
+}
+
+function getSliceDefaults() {
+  return {
+    name: '',
+    description: '',
+    id: 0,
+    customdata: { }
+  }
 }
 
 const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0

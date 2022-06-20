@@ -1,13 +1,15 @@
 
 <template>
+  <!-- <q-card-section style="min-width: 70vh;"> -->
     <q-field label="Name" stack-label readonly outlined dense class="q-mb-sm">
       <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
     </q-field>
     <q-field label="Description" stack-label readonly outlined dense class="q-mb-sm">
       <div class="self-center no-outline" tabindex="0">{{ props.data.description }}</div>
     </q-field>
-    <embed ref="fileRef" :type="props.data.mime" style="width: 100%; min-height: 50vh">
+    <embed ref="fileRef" :type="props.data.mime" style="width: 100%; height: 100%">
     <q-btn dense class="bg-secondary text-white" glossy label="FullScreen" @click="fullscreen()"/>
+  <!-- </q-card-section> -->
 </template>
 
 <script setup>
@@ -29,7 +31,7 @@ const fileRef = ref(null)
 
 const fullscreen = () => {
   AppFullscreen.request(fileRef.value).then(() => {
-    // $q.$notify('Press F11 to exit fullscreen')
+    // $q.$notify('Press F11 to exit fullscreen') - not displayed in fullscreen !?
   }).catch(e => {
     logger.error('fuillscreen failed' + e.message)
   })

@@ -62,7 +62,7 @@ export default {
     }
     return 'other'
   },
-  async csum (file, algo) {
+  async csum(file, algo) {
     const buffer = await file.arrayBuffer()
     const hash = await crypto.subtle.digest(algo, buffer)
     return Array.from(new Uint8Array(hash)).map(byte => byte.toString(16).padStart(2, '0')).join('')
@@ -177,7 +177,7 @@ export default {
   },
   tooFastAuth() {
     let t = (((new Date()).getTime() - authAttempted) / 1000)
-    if (t < 5)
+    if (t < 5) // do not allow login attempts in a less then 5 seconds
       return true
     authAttempted = (new Date()).getTime()
     return false
