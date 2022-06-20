@@ -25,7 +25,7 @@ Cloud backend code is not available in source form for now. The limited set of t
 Usage
 -----
 
-dev [ http://localhost:9000/ ] :
+dev:
 
 ```
 yarn
@@ -38,3 +38,5 @@ prod:
 yarn
 make b
 ```
+
+Next point your browser to sfinx server [ http://dev.sfinx.in/ ]
