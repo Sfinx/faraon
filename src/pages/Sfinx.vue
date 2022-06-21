@@ -63,17 +63,19 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <q-input dense outlined label-color="black" label="Slices Search" style="height: 6%" class="q-ma-sm"/>
-        <q-input ref="documentsSearchRef" v-model="documentsFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
-          <q-icon v-if="documentsFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsFilter" />
+        <q-input ref="slicesSearchRef" v-model="slicesSearch" dense outlined label-color="black" label="Slices Search" style="height: 6%" class="q-ma-sm">
+          <q-icon v-if="slicesSearch !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetSlicesFilter" />
+        </q-input>
+        <q-input ref="documentsSearchRef" v-model="documentsSearchFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
+          <q-icon v-if="documentsSearchFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsSearchFilter" />
         </q-input>
           <q-table
             dense
             class="sticky-header-table"
             style="height: 68%;"
             ref="documentsTableRef"
-            :filter="documentsFilter"
-            :filter-method="documentsFilterDocs"
+            :filter="documentsSearchFilter"
+            :filter-method="documentsSearchFilterDocs"
             :rows="documentRows"
             :columns="documentColumns"
             selection="multiple"
@@ -128,7 +130,7 @@
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
                 <q-list v-for="docType in documentTypes.slice().reverse()" style="min-width: 120px">
-                  <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsTypeFilter)">
+                  <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsFilter)">
                     <q-item-section>{{ docType }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -291,29 +293,6 @@ const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Todo']
 
-const documentsSearchRef = ref(null)
-
-let documentsFilter = reactive({
-  search: ''
-})
-
-const documentsFilterDocs = (rows, fo, cols, getCellValue) => {
-  // console.log(rows, fo, cols)
-  let search = fo.search ? fo.search.toLowerCase() : ''
-  return rows.filter(row => cols.some(col => {
-    const name = (row.name === undefined) ? '' : row.name.toLowerCase()
-    const description = (row.description === undefined) ? '' : row.description.toLowerCase()
-    if ((name.indexOf(search) == -1) && (description.indexOf(search) == -1))
-      return false
-    return true
-  }))
-}
-
-const resetdocumentsFilter = () => {
-  documentsFilter.search = ''
-  documentsSearchRef.value.focus()
-}
-
 const fullSlicePath = ref(null)
 const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
 
@@ -361,6 +340,8 @@ const documentRows = ref([])
 const documentsSelected = ref([])
 const menuSlice = reactive(getSliceDefaults())
 let viewDocumentDialog = reactive({ on: false, document: null })
+let documentsSearchFilter = reactive({ search: '' })
+const slicesSearch = ref('')
 
 // refs
 const selectSliceRef = ref(null)
@@ -369,6 +350,42 @@ const sliceNameRef = ref(null)
 const sliceDescriptionRef = ref(null)
 const plotlyRef = ref(null)
 const documentsTableRef = ref(null)
+const documentsSearchRef = ref(null)
+const slicesSearchRef = ref(null)
+
+const documentsSearchFilterDocs = (rows, fo, cols, getCellValue) => {
+  let search = fo.search ? fo.search.toLowerCase() : ''
+  return rows.filter(row => cols.some(col => {
+    const name = row.name.length ? row.name.toLowerCase() : ''
+    const description = row.description.length ? row.description.toLowerCase() : ''
+    if ((name.indexOf(search) == -1) && (description.indexOf(search) == -1))
+      return false
+    return true
+  }))
+}
+
+const resetdocumentsSearchFilter = () => {
+  documentsSearchFilter.search = ''
+  documentsSearchRef.value.focus()
+}
+
+const resetSlicesFilter = () => {
+  slicesSearch.value = ''
+  slicesSearchRef.value.focus()
+  Object.assign(documentsFilter, documentsFilter, { slices: [{ name: 'Dao', id: '1' }] })
+}
+
+watch(slicesSearch, s => {
+  if (!s.length)
+    return
+  sfinx.sendMsg('SlicesSearch', res => {
+      if (res.e)
+        $q.$notify(res.e)
+      else
+        Object.assign(documentsFilter, documentsFilter, { slices: res.d })
+    }, s)
+})
+
 
 let deleteConfirm = reactive({
   on: false,
@@ -435,8 +452,8 @@ const editDocument = (doc) => {
 
 const newOrEditDocument = (type, edit, document) => {
   let inSlices = getSlicesNames(document)
-  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsTypeFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
-  if (!documentsTypeFilter.orphans || !edit)
+  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
+  if (!documentsFilter.orphans || !edit)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
   // remove reactivity from slices so no GetDocuments will be triggered
   let slices = []
@@ -585,7 +602,7 @@ const onResize = () => {
     selectSliceRef.value.resize()
 }
 
-const getdocumentsTypeFilterDefaults = () => {
+const getdocumentsFilterDefaults = () => {
   return {
     orphans: false,
     all: false,
@@ -594,7 +611,7 @@ const getdocumentsTypeFilterDefaults = () => {
     }
 }
 
-let documentsTypeFilter = reactive(getdocumentsTypeFilterDefaults())
+let documentsFilter = reactive(getdocumentsFilterDefaults())
 
 const documentsSelect = reactive({
   all: false,
@@ -618,7 +635,7 @@ const documentsTypeSelect = () => {
       if (value == true)
         types.push(key)
     }
-    Object.assign(documentsTypeFilter, documentsTypeFilter, { all: documentsSelect.all, orphans: documentsSelect.orphans, types })
+    Object.assign(documentsFilter, documentsFilter, { all: documentsSelect.all, orphans: documentsSelect.orphans, types })
   }, 10)
 }
 
@@ -644,7 +661,7 @@ const documentsAllTypes = () => {
   }
 }
 
-watch(documentsTypeFilter, n => refreshDocuments())
+watch(documentsFilter, n => refreshDocuments())
 
 watch(showMenu, shown => {
   if (!shown)
@@ -662,7 +679,7 @@ watch(showMenu, shown => {
   menuSlice.name = (currentHoveredSlice.id == 1) ? null : currentHoveredSlice.name
 })
 
-const documentsTitle = computed(() => documentsTypeFilter.all ? 'All Documents' : (documentsTypeFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsTypeFilter) + ']')))
+const documentsTitle = computed(() => documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsFilter) + ']')))
 
 const getSlicesNames = d => {
   let label = d.slices.length ? '' : 'Dao'
@@ -840,12 +857,13 @@ const setRootSlice = root => {
 }
 
 const refreshDocuments = () => {
-  // logger.trace('refreshDocuments: ' + logger.json(documentsTypeFilter.slices))
-  // no need in slices: [{name:...}]
-  let filter = Object.assign({}, documentsTypeFilter)
+  // logger.trace('refreshDocuments: ' + logger.json(documentsFilter.slices))
+  let filter = Object.assign({}, documentsFilter)
   filter.slices = []
-  for (let s of documentsTypeFilter.slices)
+  for (let s of documentsFilter.slices)
     filter.slices.push({ id: s.id })
+  if (!filter.slices.length && slicesSearch.value.length)
+    return documentRows.value = []
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
       $q.$notify(res.e)
@@ -860,7 +878,7 @@ const plotlyClick = e => {
   documentsSelected.value.length = 0
   if (keyModifier == 'Control') { // add slice to filter
     if (!$q.$store.movingSlice) {
-      documentsTypeFilter.slices.push(currentHoveredSlice)
+      documentsFilter.slices.push(currentHoveredSlice)
       return false
     }
   } else if (keyModifier == 'Shift') {
@@ -878,7 +896,7 @@ const plotlyClick = e => {
         newParent: { id: p.id }
       })
     } else // no slice move
-        documentsTypeFilter.slices = [currentHoveredSlice]
+        documentsFilter.slices = [currentHoveredSlice]
     return false
   } else { // usual click
       // logger.trace('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))
@@ -952,7 +970,7 @@ onMounted(() => {
     if (dataRoot != '1')
       refreshSlices('1')
     else {
-      Object.assign(documentsTypeFilter, getdocumentsTypeFilterDefaults())
+      Object.assign(documentsFilter, getdocumentsFilterDefaults())
       setRootSlice()
       refreshDocuments()
     }

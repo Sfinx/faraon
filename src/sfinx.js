@@ -234,7 +234,7 @@ export default {
       }
       dispatch = {}
       if (app.parameters.debug)
-        logger.info('Sfinx: ws closed: ' + (e.reason ? (e.reason + ', ') : '') + 'code: ' + e.code)
+        logger.warn('Sfinx: ws closed: ' + (e.reason ? (e.reason + ', ') : '') + 'code: ' + e.code)
       _disconnected()
     }
     wss.onerror = e => {
