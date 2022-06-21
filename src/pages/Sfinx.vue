@@ -63,38 +63,7 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <!-- <q-input ref="slicesSearchRef" v-model="slicesSearch" dense outlined label-color="black" label="Slices Search" style="height: 6%" class="q-ma-sm">
-          <q-icon v-if="slicesSearch !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetSlicesFilter" />
-        </q-input> -->
-        <q-select
-          ref="slicesSearchRef"
-          filled
-          v-model="slicesSearch"
-          option-value="id"
-          option-label="path"
-          use-input
-          dense
-          input-debounce="0"
-          label="Slices Search"
-          :options="slicesSearchOptions"
-          @filter="slicesSearchFilterFn"
-          @update:model-value="slicesSearchUpdated"
-          style="width: 97%;height: 6%"
-          class="q-ma-sm"
-          behavior="menu"
-        >
-          <template v-if="slicesSearchInput.length || (slicesSearch && Object.keys(slicesSearch).length)" v-slot:append>
-            <q-icon name="clear" class="cursor-pointer" @click="resetSlicesFilter" />
-          </template>
-          <template v-slot:no-option>
-            <q-item>
-              <q-item-section class="text-grey">
-                No results
-              </q-item-section>
-            </q-item>
-          </template>
-        </q-select>
-
+        <search-slice :filter="documentsFilter" :selected="documentsSelected" style="width: 97%;height: 6%" class="q-ma-sm"/>
         <q-input ref="documentsSearchRef" v-model="documentsSearchFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
           <q-icon v-if="documentsSearchFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsSearchFilter" />
         </q-input>
@@ -177,11 +146,12 @@
           <q-toolbar-title>Select Slice</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
+        <q-card-actions class="q-ma-md row">
+          <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()"/>
+          <search-slice @selected="sliceSelected" style="width: 79%;height: 6%" class="q-ml-md"/>
+        </q-card-actions>
         <q-card-section class="col items-center">
-          <div>
-            <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected"/>
-            <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()"/>
-          </div>
+          <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -315,6 +285,7 @@ import { useQuasar } from 'quasar'
 import logger from '@/logger'
 import plotly from 'components/Plotly.vue'
 import selectSlice from 'components/SelectSlice.vue'
+import searchSlice from 'components/SearchSlice.vue'
 import ProcessDocument from 'components/ProcessDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
@@ -371,9 +342,6 @@ const documentsSelected = ref([])
 const menuSlice = reactive(getSliceDefaults())
 let viewDocumentDialog = reactive({ on: false, document: null })
 let documentsSearchFilter = reactive({ search: '' })
-const slicesSearch = ref('')
-const slicesSearchOptions = ref([])
-const slicesSearchInput = ref('')
 
 // refs
 const selectSliceRef = ref(null)
@@ -383,7 +351,6 @@ const sliceDescriptionRef = ref(null)
 const plotlyRef = ref(null)
 const documentsTableRef = ref(null)
 const documentsSearchRef = ref(null)
-const slicesSearchRef = ref(null)
 
 const documentsSearchFilterDocs = (rows, fo, cols, getCellValue) => {
   let search = fo.search ? fo.search.toLowerCase() : ''
@@ -399,39 +366,6 @@ const documentsSearchFilterDocs = (rows, fo, cols, getCellValue) => {
 const resetdocumentsSearchFilter = () => {
   documentsSearchFilter.search = ''
   documentsSearchRef.value.focus()
-}
-
-const resetSlicesFilter = () => {
-  slicesSearch.value = ''
-  slicesSearchRef.value.updateInputValue('')
-  slicesSearchRef.value.focus()
-  Object.assign(documentsFilter, documentsFilter, { slices: [{ name: 'Dao', id: '1' }] })
-}
-
-const slicesSearchUpdated = async v => {
-  if (v) {
-    Object.assign(documentsFilter, documentsFilter, { slices: [v] })
-  } else {
-    slicesSearchRef.value.updateInputValue('')
-    slicesSearchRef.value.focus()
-    Object.assign(documentsFilter, documentsFilter, { slices: [{ name: 'Dao', id: '1' }] })
-    slicesSearchOptions.value = await sfinx.buildSlicePaths(documentsFilter.slices)
-  }
-}
-
-const slicesSearchFilterFn = (value, update) => {
-  slicesSearchInput.value = value
-  if (value == '')
-    return update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(documentsFilter.slices))
-  documentsSelected.value.length = 0
-  sfinx.sendMsg('SlicesSearch', res => {
-    if (res.e)
-      $q.$notify(res.e)
-    else {
-      update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(res.d))
-      Object.assign(documentsFilter, documentsFilter, { slices: res.d })
-    }
-  }, value)
 }
 
 let deleteConfirm = reactive({
@@ -616,18 +550,13 @@ function getSliceDefaults() {
 const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0
 
 const sliceSelected = slice => {
-  let name = slice.label.substring(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
+  let name = slice.name ? slice.name : slice.label.substring(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
   for (let s of newOrEditDocumentDialog.slices) {
-    if (s.id == slice.id) {
-      $q.notify('Slice \'' + name + '\' already assigned')
-      return
-    }
+    if (s.id == slice.id)
+      return $q.notify('Slice \'' + name + '\' already assigned')
   }
-  newOrEditDocumentDialog.slices.push({
-    name,
-    id: slice.id
-  })
+  newOrEditDocumentDialog.slices.push({ name, id: slice.id })
   showSliceSelectionDialog.value = false
 }
 
