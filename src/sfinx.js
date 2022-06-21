@@ -161,7 +161,7 @@ export default {
     let res = [], tobuild = []
     for (let s of slices) {
       if (this.slicePathCache[s.id])
-        res.push({ s, ...{ path: this.slicePathCache[s.id] } })
+        res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
       else
         tobuild.push(s)
     }

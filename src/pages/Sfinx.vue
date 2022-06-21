@@ -116,6 +116,7 @@
             @row-click="selectDocument"
             @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document })"
             no-data-label="No documents yet"
+            no-results-label="No documents found"
           >
             <template v-slot:body-cell-type="props" >
               <q-td class="text-left">
@@ -408,9 +409,9 @@ const resetSlicesFilter = () => {
 }
 
 const slicesSearchUpdated = async v => {
-  if (v)
-    Object.assign(documentsFilter, documentsFilter, { slices: [v.s] })
-  else {
+  if (v) {
+    Object.assign(documentsFilter, documentsFilter, { slices: [v] })
+  } else {
     slicesSearchRef.value.updateInputValue('')
     slicesSearchRef.value.focus()
     Object.assign(documentsFilter, documentsFilter, { slices: [{ name: 'Dao', id: '1' }] })
@@ -422,6 +423,7 @@ const slicesSearchFilterFn = (value, update) => {
   slicesSearchInput.value = value
   if (value == '')
     return update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(documentsFilter.slices))
+  documentsSelected.value.length = 0
   sfinx.sendMsg('SlicesSearch', res => {
     if (res.e)
       $q.$notify(res.e)
@@ -707,6 +709,8 @@ const documentsAllTypes = () => {
 }
 
 watch(documentsFilter, n => refreshDocuments())
+
+watch(() => documentsSearchFilter.search, n => documentsSelected.value.length = 0)
 
 watch(showMenu, shown => {
   if (!shown)
