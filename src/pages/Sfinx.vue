@@ -63,12 +63,17 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <q-input dense outlined label-color="black" label="Search" style="height: 6%" class="q-ma-sm"/>
+        <q-input dense outlined label-color="black" label="Slices Search" style="height: 6%" class="q-ma-sm"/>
+        <q-input ref="documentsSearchRef" v-model="documentsFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
+          <q-icon v-if="documentsFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsFilter" />
+        </q-input>
           <q-table
             dense
             class="sticky-header-table"
-            style="height: 76%;"
+            style="height: 68%;"
             ref="documentsTableRef"
+            :filter="documentsFilter"
+            :filter-method="documentsFilterDocs"
             :rows="documentRows"
             :columns="documentColumns"
             selection="multiple"
@@ -123,7 +128,7 @@
             <q-btn class="dense bg-secondary text-white" glossy label="New">
               <q-menu>
                 <q-list v-for="docType in documentTypes.slice().reverse()" style="min-width: 120px">
-                  <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsFilter)">
+                  <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsTypeFilter)">
                     <q-item-section>{{ docType }}</q-item-section>
                   </q-item>
                 </q-list>
@@ -286,6 +291,29 @@ const $q = useQuasar()
 
 const documentTypes = ['Note', 'File', 'Event', 'Todo']
 
+const documentsSearchRef = ref(null)
+
+let documentsFilter = reactive({
+  search: ''
+})
+
+const documentsFilterDocs = (rows, fo, cols, getCellValue) => {
+  // console.log(rows, fo, cols)
+  let search = fo.search ? fo.search.toLowerCase() : ''
+  return rows.filter(row => cols.some(col => {
+    const name = (row.name === undefined) ? '' : row.name.toLowerCase()
+    const description = (row.description === undefined) ? '' : row.description.toLowerCase()
+    if ((name.indexOf(search) == -1) && (description.indexOf(search) == -1))
+      return false
+    return true
+  }))
+}
+
+const resetdocumentsFilter = () => {
+  documentsFilter.search = ''
+  documentsSearchRef.value.focus()
+}
+
 const fullSlicePath = ref(null)
 const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
 
@@ -407,8 +435,8 @@ const editDocument = (doc) => {
 
 const newOrEditDocument = (type, edit, document) => {
   let inSlices = getSlicesNames(document)
-  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
-  if (!documentsFilter.orphans || !edit)
+  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsTypeFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
+  if (!documentsTypeFilter.orphans || !edit)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
   // remove reactivity from slices so no GetDocuments will be triggered
   let slices = []
@@ -557,7 +585,7 @@ const onResize = () => {
     selectSliceRef.value.resize()
 }
 
-const getDocumentsFilterDefaults = () => {
+const getdocumentsTypeFilterDefaults = () => {
   return {
     orphans: false,
     all: false,
@@ -566,7 +594,7 @@ const getDocumentsFilterDefaults = () => {
     }
 }
 
-let documentsFilter = reactive(getDocumentsFilterDefaults())
+let documentsTypeFilter = reactive(getdocumentsTypeFilterDefaults())
 
 const documentsSelect = reactive({
   all: false,
@@ -590,7 +618,7 @@ const documentsTypeSelect = () => {
       if (value == true)
         types.push(key)
     }
-    Object.assign(documentsFilter, documentsFilter, { all: documentsSelect.all, orphans: documentsSelect.orphans, types })
+    Object.assign(documentsTypeFilter, documentsTypeFilter, { all: documentsSelect.all, orphans: documentsSelect.orphans, types })
   }, 10)
 }
 
@@ -616,7 +644,7 @@ const documentsAllTypes = () => {
   }
 }
 
-watch(documentsFilter, n => refreshDocuments())
+watch(documentsTypeFilter, n => refreshDocuments())
 
 watch(showMenu, shown => {
   if (!shown)
@@ -634,7 +662,7 @@ watch(showMenu, shown => {
   menuSlice.name = (currentHoveredSlice.id == 1) ? null : currentHoveredSlice.name
 })
 
-const documentsTitle = computed(() => documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsFilter) + ']')))
+const documentsTitle = computed(() => documentsTypeFilter.all ? 'All Documents' : (documentsTypeFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsTypeFilter) + ']')))
 
 const getSlicesNames = d => {
   let label = d.slices.length ? '' : 'Dao'
@@ -812,11 +840,11 @@ const setRootSlice = root => {
 }
 
 const refreshDocuments = () => {
-  // logger.trace('refreshDocuments: ' + logger.json(documentsFilter.slices))
+  // logger.trace('refreshDocuments: ' + logger.json(documentsTypeFilter.slices))
   // no need in slices: [{name:...}]
-  let filter = Object.assign({}, documentsFilter)
+  let filter = Object.assign({}, documentsTypeFilter)
   filter.slices = []
-  for (let s of documentsFilter.slices)
+  for (let s of documentsTypeFilter.slices)
     filter.slices.push({ id: s.id })
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
@@ -832,7 +860,7 @@ const plotlyClick = e => {
   documentsSelected.value.length = 0
   if (keyModifier == 'Control') { // add slice to filter
     if (!$q.$store.movingSlice) {
-      documentsFilter.slices.push(currentHoveredSlice)
+      documentsTypeFilter.slices.push(currentHoveredSlice)
       return false
     }
   } else if (keyModifier == 'Shift') {
@@ -850,7 +878,7 @@ const plotlyClick = e => {
         newParent: { id: p.id }
       })
     } else // no slice move
-        documentsFilter.slices = [currentHoveredSlice]
+        documentsTypeFilter.slices = [currentHoveredSlice]
     return false
   } else { // usual click
       // logger.trace('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))
@@ -924,7 +952,7 @@ onMounted(() => {
     if (dataRoot != '1')
       refreshSlices('1')
     else {
-      Object.assign(documentsFilter, getDocumentsFilterDefaults())
+      Object.assign(documentsTypeFilter, getdocumentsTypeFilterDefaults())
       setRootSlice()
       refreshDocuments()
     }
