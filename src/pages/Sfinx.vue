@@ -200,7 +200,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="q-mx-xs q-mt-xs" style="min-height: fit-content; padding: 6px">
-            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
+            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @update="viewDocumentUpdate" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
         </q-card-section>
         <q-card-section class="dense">
           <q-select
@@ -311,7 +311,7 @@ const documentColumns = [
       return v
     }
   },
-  { name: 'ctime', align: 'center', label: 'Stamp', field: 'ctime', sortable: true, format: (val, row) => {
+  { name: 'ctime', align: 'center', label: 'Created', field: 'ctime', sortable: true, format: (val, row) => {
       let d = new Date(val * 1000)
       return format(d, 'DD/MM/YY HH:mm:ss')
     }
@@ -446,6 +446,13 @@ const newOrEditDocumentDone = (doc) => {
         ok()
     }, doc)
   }
+}
+
+const viewDocumentUpdate = (doc) => {
+  sfinx.sendMsg('EditDocument', res => {
+    if (res.e)
+      $q.$notify(res.e)
+  }, { data: doc, _key: viewDocumentDialog.document._key })
 }
 
 const documentPresent = (row) => {

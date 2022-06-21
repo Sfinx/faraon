@@ -1,7 +1,7 @@
 
 <template>
   <q-card-section class="items-center" >
-    <q-field outlined dense>
+    <q-field label="Name" stack-label outlined dense>
       <template v-slot:control>
         <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
       </template>

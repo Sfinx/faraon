@@ -4,7 +4,7 @@
     <q-input v-model="props.data.document.name" outlined label-color="black" label="ToDo Name" ref="todoNameRef" @keydown.enter.prtodo="todoDescriptionRef.focus()" class="q-mb-sm"/>
     <q-input v-model="props.data.document.description" outlined label-color="black" label="ToDo Description" ref="todoDescriptionRef"/>
     <q-scroll-area ref="scrollRef" class="outline rounded-borders q-mt-md" style="height: 35vh; outline-width: thin">
-      <draggable v-model="props.data.document.items" item-key="id">
+      <draggable v-model="props.data.document.items" item-key="index">
         <template #item="{element, index}">
           <div class="q-my-md column">
             <div class="row">
@@ -54,7 +54,6 @@ const removeItem = (idx) => props.data.document.items.splice(idx, 1)
 
 const newItem = () => {
   let item = {
-    id: props.data.document.items.length,
     name: '',
     done: false
   }
