@@ -157,7 +157,7 @@ function showSimpleProfileDialog () {
       return
     sfinx.sendMsg('UpdateProfile', res => {
       if (res.e)
-        $q.$notify(res.e)
+        $q.$enotify(res.e)
     }, {
       telegramToken: data
     })
@@ -187,7 +187,7 @@ const setWaitIcon = (v, m) => {
 
 const validate = isReg => {
   if (sfinx.tooFastAuth()) {
-   $q.$notify('Too fast auth !')
+   $q.$enotify('Too fast auth !')
    return false
   }
   return true
@@ -196,7 +196,7 @@ const validate = isReg => {
 const login = () => {
   if (!sid || waitIcon.value || !validate()) {
    if (!sid)
-     $q.$notify('Not connected')
+     $q.$enotify('Not connected')
    return
   }
   if (debugKey.value == 'Shift')
@@ -211,7 +211,7 @@ const login = () => {
   sfinx.login(user.value, pass.value, res => {
     setWaitIcon(false)
     if (res.e)
-      $q.$notify('Login failed: ' + res.e)
+      $q.$enotify('Login failed: ' + res.e)
     else {
       let u = {
         footer: user.value

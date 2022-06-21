@@ -85,7 +85,7 @@ const slicesSearchFilterFn = (value, update) => {
     props.selected.length = 0
   sfinx.sendMsg('SlicesSearch', res => {
     if (res.e)
-      $q.$notify(res.e)
+      $q.$enotify(res.e)
     else {
       update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(res.d))
       Object.assign(props.filter, props.filter, { slices: res.d })

@@ -1,16 +1,19 @@
 
+current:
+
+ - add encryption to documents (master & unique passwords)
+ - add bot command "view next N events" in telegram
+
+
+
 misc:
 
- - add voice search (read the book)
- - add encryption to documents (master & unique passwords)
  - implement multiple documents slices editing (all must have the same slices only)
  - implement slice semantics (json-ld)
  - implement basic AI agents:
    - watcher
    - harvester
- - add static colors to slices
  - switch note editor to https://github.com/flyween/vue3-quill
- - write automated tests (puppeteer based)
  - transact edit/delete operations in DB
  - add div zoom by scroll/pan event to slices
  - create main Slices component (reuse it in sliceselect)
@@ -21,7 +24,8 @@ misc:
 		- streaming play of media files (videos)
  - notify options:
    - notify me before
- - add bot command "view next N events" in telegram
  - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
  - make viewdocuments as readonly versions of newedit dialog with hidden edit button ???
- - use enotify on errors
+ - add voice search (read the book)
+ - add static colors to slices
+ - write automated tests (puppeteer based)

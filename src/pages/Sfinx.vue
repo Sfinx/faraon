@@ -164,7 +164,7 @@
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: fit-content;">
             <process-document ref="processDocumentRef" :type="newOrEditDocumentDialog.type" op="NewOrEdit" :data="newOrEditDocumentDialog"
-              @error="e => { $q.$notify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="newOrEditDocumentDone"/>
+              @error="e => { $q.$enotify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="newOrEditDocumentDone"/>
         </q-card-section>
         <q-card-section class="dense items-center q-pb-xs">
           <div @click="showSliceSelectionDialog = true">
@@ -207,7 +207,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="q-mx-xs q-mt-xs" style="min-height: fit-content; padding: 6px">
-            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @update="viewDocumentUpdate" @error="e => { $q.$notify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
+            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @update="viewDocumentUpdate" @error="e => { $q.$enotify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
         </q-card-section>
         <q-card-section class="dense">
           <q-select
@@ -405,7 +405,7 @@ const deleteDocument = () => {
     docs.push(d._key)
   sfinx.sendMsg('DeleteDocument', res => {
     if (res.e)
-      $q.$notify(res.e)
+      $q.$enotify(res.e)
     else {
       refreshDocuments()
       $q.$store.total_documents -= docs.length
@@ -460,14 +460,14 @@ const newOrEditDocumentDone = (doc) => {
   if (newOrEditDocumentDialog.edit) {
     sfinx.sendMsg('EditDocument', res => {
       if (res.e)
-        $q.$notify(res.e)
+        $q.$enotify(res.e)
       else
         ok()
     }, doc)
   } else {
     sfinx.sendMsg('NewDocument', res => {
       if (res.e)
-        $q.$notify(res.e)
+        $q.$enotify(res.e)
       else
         ok()
     }, doc)
@@ -477,7 +477,7 @@ const newOrEditDocumentDone = (doc) => {
 const viewDocumentUpdate = (doc) => {
   sfinx.sendMsg('EditDocument', res => {
     if (res.e)
-      $q.$notify(res.e)
+      $q.$enotify(res.e)
   }, { data: doc, _key: viewDocumentDialog.document._key })
 }
 
@@ -554,7 +554,7 @@ const sliceSelected = slice => {
   // no sense to have several instances of the same slice
   for (let s of newOrEditDocumentDialog.slices) {
     if (s.id == slice.id)
-      return $q.notify('Slice \'' + name + '\' already assigned')
+      return $q.enotify('Slice \'' + name + '\' already assigned')
   }
   newOrEditDocumentDialog.slices.push({ name, id: slice.id })
   showSliceSelectionDialog.value = false
@@ -673,7 +673,7 @@ const sliceProcess = () => {
   if (sliceDialogTitle.value.startsWith('Edit')) {
     sfinx.sendMsg('EditSlice', res => {
       if (res.e)
-        $q.$notify(res.e)
+        $q.$enotify(res.e)
       else {
         refreshSlices()
         showNewOrEditSliceDialog.value = false
@@ -682,7 +682,7 @@ const sliceProcess = () => {
   } else {
     sfinx.sendMsg('NewSlice', res => {
       if (res.e)
-        $q.$notify(res.e)
+        $q.$enotify(res.e)
       else {
         refreshSlices()
         showNewOrEditSliceDialog.value = false
@@ -700,7 +700,7 @@ const refreshSlices = (newRoot) => {
   }
   sfinx.sendMsg('GetSlices', res => {
   if (res.e)
-    $q.$notify(res.e)
+    $q.$enotify(res.e)
    else {
      let slices = {
        labels: [],
@@ -761,7 +761,7 @@ const deleteSlice = mode => {
   // console.log('*** deleteSlice, mode: ' + mode, menuSlice)
   sfinx.sendMsg('DeleteSlice', res => {
   if (res.e)
-    $q.$notify(res.e)
+    $q.$enotify(res.e)
    else {
      refreshSlices()
      refreshDocuments() // refresh as documents can become orphaned
@@ -776,7 +776,7 @@ const moveSlice = cancel => {
   if (cancel) {
     sfinx.sendMsg('SliceMoveMode', res => {
       if (res.e)
-        $q.$notify(res.e)
+        $q.$enotify(res.e)
       else {
         $q.$store.movingSlice = null
         refreshSlices()
@@ -791,7 +791,7 @@ const moveSlice = cancel => {
   refreshSlices('1')
   sfinx.sendMsg('SliceMoveMode', res => {
     if (res.e)
-      $q.$notify(res.e)
+      $q.$enotify(res.e)
     else {
       showMenu.value = false
       $q.$store.movingSlice = menuSlice
@@ -844,7 +844,7 @@ const refreshDocuments = () => {
     return documentRows.value = []
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
-      $q.$notify(res.e)
+      $q.$enotify(res.e)
     else
       documentRows.value = res.d
   }, filter)
@@ -864,7 +864,7 @@ const plotlyClick = e => {
     if ($q.$store.movingSlice) {
       sfinx.sendMsg('SliceMoveMode', res => {
         if (res.e)
-          $q.$notify(res.e)
+          $q.$enotify(res.e)
         else {
           // console.log('*** moveSlice finish', $q.$store.movingSlice)
           $q.$store.movingSlice = null

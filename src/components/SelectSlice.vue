@@ -139,7 +139,7 @@ const refresh = (newRoot) => {
   }
   sfinx.sendMsg('GetSlices', res => {
     if (res.e)
-      $q.notify('selectSlice: GetSlices: ' + res.e)
+      $q.enotify('selectSlice: GetSlices: ' + res.e)
     else {
       let slices = {
         labels: [],

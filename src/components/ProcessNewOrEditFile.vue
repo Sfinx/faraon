@@ -47,7 +47,7 @@ const uploadPauseResume = (paused) => {
 const startUpload = async () => {
   upload.value = await sfinx.uploadFile(file.value, (e, progress, done) => {
     if (e)
-      $q.$notify(e)
+      $q.$enotify(e)
     if (progress && props.data.document.uploaded.on)
       uploadDialog.update({
         title: props.data.document.name,
