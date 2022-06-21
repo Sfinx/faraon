@@ -1,7 +1,5 @@
 current:
 
- - add new documents types:
-	- todo
  - add slices & documents search:
   - in sliceselect as paths suggestions
 

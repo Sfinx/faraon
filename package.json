@@ -23,13 +23,14 @@
     "uuid": "^8.3.2",
     "vue": "^3.2.37",
     "vue-resize-directive": "^1.2.0",
-    "vue-router": "^4.0.16"
+    "vue-router": "^4.0.16",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@quasar/app-vite": "^1.0.2",
     "autoprefixer": "^10.4.7",
     "postcss": "^8.4.14",
-    "rollup": "^2.75.6",
+    "rollup": "^2.75.7",
     "serve": "^13.0.2",
     "unocss": "^0.39.3",
     "vite": "^2.9.12"

@@ -10,6 +10,7 @@
         <p>Slice selection is performed with holding Shift & click</p>
         <p>Add new slice to selection is performed with holding Ctrl & click</p>
         <p>Double click in documents browser to view the document</p>
+        <p>ToDo's items are draggable in edit mode</p>
         <p>To receive telgram notifications:
           <ul>
             <li>Find in telegram @botfather</li>

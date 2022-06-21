@@ -58,7 +58,7 @@
     </div>
 
     <!-- documents browser -->
-    <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 33%;">
+    <div class="q-pa-md" style="z-index: 10; position: absolute;top: 0; left: 0; height: 100%; width: 40%;">
       <q-card class="q-dialog-plugin" style="user-select: none; height: 100%; min-width: 95%;">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
@@ -85,7 +85,7 @@
               <q-td class="text-left">
                 <!-- <q-icon name="xyz" class="q-mr-md"/> -->
                 <q-badge
-                  class="q-pr-md"
+                  class="q-mr-md"
                   style="height: 25px; width: 20px"
                   color="green"
                   :label="props.value[0].toUpperCase()"
@@ -870,7 +870,7 @@ const plotlyLayout = reactive({
     duration: 300,
     easing: 'cubic-in-out'
   },
-  margin: {l: 0, r: 0, b: 40, t: 40},
+  margin: {l: 500, r: 0, b: 40, t: 40},
   width: ($q.screen.width/100) * 81,
   height: ($q.screen.height/100) * 81
 })

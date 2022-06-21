@@ -57,10 +57,10 @@
     </div>
     <q-input v-model="props.data.document.url" outlined label-color="black" label="URL / Location" ref="eventURLRef"/>
     <div class="q-py-sm row justify-left">
-      <q-toggle class="q-pt-sm " v-model="props.data.document.on" label="Enabled"/>
-      <q-toggle class="q-pt-sm q-pl-sm" v-model="props.data.document.repeat.on" label="Repeat"/>
-      <q-toggle class="q-pt-sm q-pl-sm" v-model="props.data.document.notify" label="Telegram Notify"/>
-      <q-toggle class="q-pt-sm q-pl-sm" v-model="props.data.document.notifyBefore.on" label="Notify Before"/>
+      <q-checkbox class="q-pt-sm " v-model="props.data.document.on" label="Enabled"/>
+      <q-checkbox class="q-pt-sm q-pl-sm" v-model="props.data.document.repeat.on" label="Repeat"/>
+      <q-checkbox class="q-pt-sm q-pl-sm" v-model="props.data.document.notify" label="Telegram Notify"/>
+      <q-checkbox class="q-pt-sm q-pl-sm" v-model="props.data.document.notifyBefore.on" label="Notify Before"/>
     </div>
     <div v-if="props.data.document.notifyBefore.on" class="q-py-sm row justify-between">
       <q-input class="nospins" type="number" v-on:keypress="NumbersOnly" label-color="black" label="Notify Before Days" style="max-width: 30%" filled v-model="props.data.document.notifyBefore.days"/>
