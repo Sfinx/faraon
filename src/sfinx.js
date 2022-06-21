@@ -152,10 +152,33 @@ export default {
     for (let p of r) {
       if (path != '')
         path += ' / '
-      path += p.name
+      path += p
     }
     this.slicePathCache[s.id] = path
     return path
+  },
+  async buildSlicePaths(slices) {
+    let res = [], tobuild = []
+    for (let s of slices) {
+      if (this.slicePathCache[s.id])
+        res.push({ s, ...{ path: this.slicePathCache[s.id] } })
+      else
+        tobuild.push(s)
+    }
+    if (!tobuild.length)
+      return res
+    let r = await this.sendMsgPromise('GetSlicesPath', tobuild)
+    for (let s of r) {
+      let path = ''
+      for (let p of s.path) {
+        if (path != '')
+          path += ' / '
+        path += p
+      }
+      this.slicePathCache[s.id] = path
+      res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
+    }
+    return res
   },
   dispatch_default(ro) {
     if (app.parameters.debug)

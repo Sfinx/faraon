@@ -63,9 +63,38 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <q-input ref="slicesSearchRef" v-model="slicesSearch" dense outlined label-color="black" label="Slices Search" style="height: 6%" class="q-ma-sm">
+        <!-- <q-input ref="slicesSearchRef" v-model="slicesSearch" dense outlined label-color="black" label="Slices Search" style="height: 6%" class="q-ma-sm">
           <q-icon v-if="slicesSearch !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetSlicesFilter" />
-        </q-input>
+        </q-input> -->
+        <q-select
+          ref="slicesSearchRef"
+          filled
+          v-model="slicesSearch"
+          option-value="id"
+          option-label="path"
+          use-input
+          dense
+          input-debounce="0"
+          label="Slices Search"
+          :options="slicesSearchOptions"
+          @filter="slicesSearchFilterFn"
+          @update:model-value="slicesSearchUpdated"
+          style="width: 97%;height: 6%"
+          class="q-ma-sm"
+          behavior="menu"
+        >
+          <template v-if="slicesSearchInput.length || (slicesSearch && Object.keys(slicesSearch).length)" v-slot:append>
+            <q-icon name="clear" class="cursor-pointer" @click="resetSlicesFilter" />
+          </template>
+          <template v-slot:no-option>
+            <q-item>
+              <q-item-section class="text-grey">
+                No results
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
+
         <q-input ref="documentsSearchRef" v-model="documentsSearchFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
           <q-icon v-if="documentsSearchFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsSearchFilter" />
         </q-input>
@@ -342,6 +371,8 @@ const menuSlice = reactive(getSliceDefaults())
 let viewDocumentDialog = reactive({ on: false, document: null })
 let documentsSearchFilter = reactive({ search: '' })
 const slicesSearch = ref('')
+const slicesSearchOptions = ref([])
+const slicesSearchInput = ref('')
 
 // refs
 const selectSliceRef = ref(null)
@@ -371,21 +402,35 @@ const resetdocumentsSearchFilter = () => {
 
 const resetSlicesFilter = () => {
   slicesSearch.value = ''
+  slicesSearchRef.value.updateInputValue('')
   slicesSearchRef.value.focus()
   Object.assign(documentsFilter, documentsFilter, { slices: [{ name: 'Dao', id: '1' }] })
 }
 
-watch(slicesSearch, s => {
-  if (!s.length)
-    return
-  sfinx.sendMsg('SlicesSearch', res => {
-      if (res.e)
-        $q.$notify(res.e)
-      else
-        Object.assign(documentsFilter, documentsFilter, { slices: res.d })
-    }, s)
-})
+const slicesSearchUpdated = async v => {
+  if (v)
+    Object.assign(documentsFilter, documentsFilter, { slices: [v.s] })
+  else {
+    slicesSearchRef.value.updateInputValue('')
+    slicesSearchRef.value.focus()
+    Object.assign(documentsFilter, documentsFilter, { slices: [{ name: 'Dao', id: '1' }] })
+    slicesSearchOptions.value = await sfinx.buildSlicePaths(documentsFilter.slices)
+  }
+}
 
+const slicesSearchFilterFn = (value, update) => {
+  slicesSearchInput.value = value
+  if (value == '')
+    return update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(documentsFilter.slices))
+  sfinx.sendMsg('SlicesSearch', res => {
+    if (res.e)
+      $q.$notify(res.e)
+    else {
+      update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(res.d))
+      Object.assign(documentsFilter, documentsFilter, { slices: res.d })
+    }
+  }, value)
+}
 
 let deleteConfirm = reactive({
   on: false,

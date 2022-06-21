@@ -1,7 +1,6 @@
 
 current:
 
- - add slices search as paths suggestions to document browser
  - add slices search as paths suggestions to sliceselect dialog
 
 misc:
