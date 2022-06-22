@@ -16,7 +16,20 @@ let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
 
 export default {
   $q: null,
-  prompt(title, message, type) {
+  async passPrompt(title, message, type) {
+    let pass = await this.prompt(title, message, type)
+    if (pass.length < 8)
+      return { e: this.shortPassError }
+    return { k: pass }
+  },
+  async prompt(title, message, type) {
+    try {
+      return await this.dialog(title, message, type)
+    } catch (e) {
+      return ''
+    }
+  },
+  dialog(title, message, type) {
     if (!type)
       type = 'text'
     return new Promise((resolve, reject) => {
@@ -32,14 +45,39 @@ export default {
       }).onOk(data => resolve(data)).onCancel(() => reject()).onDismiss(() => reject())
     })
   },
-  async getMasterKey() {
-    try {
-      if (!this.masterKey || this.masterKey.length < 8)
-        this.masterKey = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
-    } catch (e) {
-        this.masterKey = ''
+  shortPassError: 'Unlock password is too short (< 8 characters)',
+  async genMasterKey() {
+    const encoder = new TextEncoder()
+    let key = await this.sendMsgPromise('GetMasterKey')
+    if (!key.length) {
+      const newKey = crypto.getRandomValues(new Uint8Array(32))
+      let jwe = new jose.FlattenedEncrypt(encoder.encode(newKey)).setProtectedHeader({ alg: this.alg, enc: this.enc })
+      let pass = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
+      if (pass.length < 8)
+        return { e: this.shortPassError }
+      jwe = await jwe.encrypt(encoder.encode(pass))
+      await this.sendMsgPromise('SetMasterKey', jwe)
+      return { k: newKey }
+    } else { // decrypt the key
+        const decoder = new TextDecoder()
+        let pass = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
+        if (pass.length < 8)
+          return { e: this.shortPassError }
+        try {
+          let data = await jose.flattenedDecrypt(key[0], encoder.encode(pass))
+          let dbKey = decoder.decode(data.plaintext)
+          return { k: dbKey }
+        } catch (e) {
+            return { e: 'genMasterKey: ' + e.message }
+        }
     }
-    return this.masterKey
+  },
+  async getMasterKey() {
+    if (this.masterKey && this.masterKey.length)
+      return { k: this.masterKey }
+    let key = await this.genMasterKey()
+    this.masterKey = key.e ? '' : key.k
+    return key
   },
   alg: 'PBES2-HS256+A128KW',
   enc: 'A256GCM',
@@ -54,8 +92,7 @@ export default {
       let data = await jose.flattenedDecrypt(d, encoder.encode(k))
       return logger.parse(decoder.decode(data.plaintext))
     } catch(e) {
-        logger.warn('decrypt: ' + logger.json(e))
-        return { ...d, error: e.message }
+        return { ...d, error: 'Document decrypt: ' + e.message }
     }
   },
   async encrypt(d, k, aad) {

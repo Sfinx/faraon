@@ -1,7 +1,6 @@
 
 current:
 
- - generate random master key, encrypt it by master password and store in db
  - add bot command "view next N events" in telegram
 
 misc:

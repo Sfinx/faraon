@@ -41,17 +41,12 @@ async function decrypt(d) {
   let key, encrypt = 1, data, error
   if (d.aad) {
     encrypt = 2
-    try {
-      key = await sfinx.prompt('Unique Password', 'Enter Unique Password for AAD [ ' + sfinx.aad(d) + ' ]', 'password')
-    } catch(e) {
-      key = ''
-    }
+    key = await sfinx.passPrompt('Unique Password', 'Enter Unique Password for AAD [ ' + sfinx.aad(d) + ' ]', 'password')
   } else
       key = await sfinx.getMasterKey()
-  error = 'Encrypt password is too short (< 8 characters)'
-  if (key.length < 8)
-    return { data, encrypt, error}
-  data = await sfinx.decrypt(d, key)
+  if (key.e)
+    return { data, encrypt, error: e }
+  data = await sfinx.decrypt(d, key.k)
   error = data.error ? data.error : undefined
   return { data, encrypt, error }
 }

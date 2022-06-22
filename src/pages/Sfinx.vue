@@ -480,14 +480,14 @@ const newOrEditDocumentDone = async (doc) => {
     if (newOrEditDocumentDialog.encrypted.value == 1)
       key = await sfinx.getMasterKey()
     else {
-      key = await sfinx.prompt('Unique Password', 'Enter the Unique Password', 'password')
-      aad = await sfinx.prompt('AAD for ' + newOrEditDocumentDialog.title, 'Enter the Hint for document encrypted by Unique Password')
-      if (!aad?.length)
+      key = await sfinx.passPrompt('Unique Password', 'Enter the Unique Password', 'password')
+      aad = await sfinx.passPrompt('AAD for ' + newOrEditDocumentDialog.title, 'Enter the Hint for document encrypted by Unique Password')
+      if (!aad.k.length)
         return $q.$enotify('Invalid AAD')
     }
-    if (key?.length < 8)
-      return $q.$enotify('Encrypt password is too short (< 8 characters)')
-    data = await sfinx.encrypt(doc.data, key, aad)
+    if (key.e)
+      return $q.$enotify(key.e)
+    data = await sfinx.encrypt(doc.data, key.k, aad?.k)
   }
   let newDoc = Object.assign({}, { ...doc, ...{ data }, type: newOrEditDocumentDialog.type.toLowerCase(), slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
@@ -890,22 +890,22 @@ const refreshDocuments = () => {
       $q.$store.total_documents = res.d.length
       for (let d of res.d) {
         d.encrypt = 0
-        let key
         if (d.data.ciphertext) {
           d.encrypt = 1
           if (d.data.aad) { // unique key
             d.encrypt = 2
             continue
           } else if (sfinx.masterKey != '') { // do not ask the master key each refresh time, '' means skip for now
-              key = await sfinx.getMasterKey()
-          if (key.length < 8)
-            $q.$enotify('Encrypt password is too short (< 8 characters)')
-          else
-            d.data = await sfinx.decrypt(d.data, key)
-            if (d.data.error) {
-              $q.$enotify(d.data.error)
-              delete d.data.error
-            }
+              let key = await sfinx.getMasterKey()
+              if (key.e)
+                $q.$enotify(key.e)
+              else {
+                d.data = await sfinx.decrypt(d.data, key.k)
+                if (d.data.error) {
+                  $q.$enotify(d.data.error)
+                  delete d.data.error
+                }
+              }
           }
         }
       }
