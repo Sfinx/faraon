@@ -2,9 +2,9 @@
 current:
 
  - add encryption to documents (master & unique passwords)
+	- master will decrypt GetDocuments on the fly
+	- unique only when opened
  - add bot command "view next N events" in telegram
-
-
 
 misc:
 
@@ -14,7 +14,7 @@ misc:
    - watcher
    - harvester
  - switch note editor to https://github.com/flyween/vue3-quill
- - transact edit/delete operations in DB
+ - transact edit/delete operations in DB that consist of several steps
  - add div zoom by scroll/pan event to slices
  - create main Slices component (reuse it in sliceselect)
  - add to file:
@@ -29,3 +29,4 @@ misc:
  - add voice search (read the book)
  - add static colors to slices
  - write automated tests (puppeteer based)
+ - connect ebook reader and save reading history in DB (pages, annotations, etc.) for PDF/EPUB/DJVU/TXT formats

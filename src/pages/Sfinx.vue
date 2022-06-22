@@ -203,11 +203,12 @@
     <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="min-width: 35vw;">
         <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
-          <q-toolbar-title>{{ 'View ' + sfinx.getFullDocumentType(viewDocumentDialog.document) +' \'' + viewDocumentDialog.document.name + '\'' }}</q-toolbar-title>
+          <q-toolbar-title>{{ 'View ' + sfinx.getFullDocumentType(viewDocumentDialog.document) +' \'' + viewDocumentDialog.document.data.name + '\'' }}</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
         <q-card-section class="q-mx-xs q-mt-xs" style="min-height: fit-content; padding: 6px">
-            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document" @update="viewDocumentUpdate" @error="e => { $q.$enotify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
+            <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document.data" @update="viewDocumentUpdate"
+              @error="e => { $q.$enotify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
         </q-card-section>
         <q-card-section class="dense">
           <q-select
@@ -289,6 +290,7 @@ import searchSlice from 'components/SearchSlice.vue'
 import ProcessDocument from 'components/ProcessDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
+import { data } from 'autoprefixer'
 
 const $q = useQuasar()
 
@@ -306,13 +308,13 @@ const maxColumnWidth = 9
 
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
-  { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true, format: (v, r) => {
+  { name: 'name', align: 'left', label: 'Name', field: r => r.data.name, sortable: true, format: (v, r) => {
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
       return v
     }
   },
-  { name: 'description', align: 'center', label: 'Description', field: 'description', sortable: true, format: (v, r) => {
+  { name: 'description', align: 'center', label: 'Description', field: r => r.data.description, sortable: true, format: (v, r) => {
       v = stripHTML(v)
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
@@ -355,8 +357,8 @@ const documentsSearchRef = ref(null)
 const documentsSearchFilterDocs = (rows, fo, cols, getCellValue) => {
   let search = fo.search ? fo.search.toLowerCase() : ''
   return rows.filter(row => cols.some(col => {
-    const name = row.name.length ? row.name.toLowerCase() : ''
-    const description = row.description.length ? row.description.toLowerCase() : ''
+    const name = row.data.name.length ? row.data.name.toLowerCase() : ''
+    const description = row.data.description.length ? row.data.description.toLowerCase() : ''
     if ((name.indexOf(search) == -1) && (description.indexOf(search) == -1))
       return false
     return true
@@ -450,9 +452,9 @@ const newOrEditDocumentDone = (doc) => {
   newOrEditDocumentDialog.on = false
   if (!doc)
     return
-  // remove unneeded data from document
+  // remove unneeded data from document object
   delete doc.slices
-  doc = Object.assign({}, { data:doc, slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
+  doc = Object.assign({}, { ...doc, type: newOrEditDocumentDialog.type.toLowerCase(), slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
     refreshDocuments()
     documentsSelected.value = []
@@ -845,8 +847,10 @@ const refreshDocuments = () => {
   sfinx.sendMsg('GetDocuments', res => {
     if (res.e)
       $q.$enotify(res.e)
-    else
+    else {
+      $q.$store.total_documents = res.d.length
       documentRows.value = res.d
+    }
   }, filter)
 }
 
@@ -942,7 +946,6 @@ onMounted(() => {
   window.addEventListener('keydown', keyDown)
   window.addEventListener('keyup', keyUp)
   refreshSlices()
-  refreshDocuments()
   emitter.on('ReturnToDao', () => {
     // logger.trace('Return to Dao from ' + dataRoot)
     if (dataRoot != '1')

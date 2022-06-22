@@ -1,10 +1,10 @@
 
 <template>
   <q-card-section v-if="shown" class="items-center" style="width: 40vw">
-    <q-input v-model="props.data.document.name" outlined label-color="black" label="ToDo Name" ref="todoNameRef" @keydown.enter.prtodo="todoDescriptionRef.focus()" class="q-mb-sm"/>
-    <q-input v-model="props.data.document.description" outlined label-color="black" label="ToDo Description" ref="todoDescriptionRef"/>
+    <q-input v-model="props.data.document.data.name" outlined label-color="black" label="ToDo Name" ref="todoNameRef" @keydown.enter.prtodo="todoDescriptionRef.focus()" class="q-mb-sm"/>
+    <q-input v-model="props.data.document.data.description" outlined label-color="black" label="ToDo Description" ref="todoDescriptionRef"/>
     <q-scroll-area ref="scrollRef" class="outline rounded-borders q-mt-md" style="height: 35vh; outline-width: thin">
-      <draggable v-model="props.data.document.items" item-key="index">
+      <draggable v-model="props.data.document.data.items" item-key="index">
         <template #item="{element, index}">
           <div class="q-my-md column">
             <div class="row">
@@ -17,7 +17,7 @@
       </draggable>
     </q-scroll-area>
     <q-icon v-ripple name="mdi-plus" size="25px" class="rounded q-ml-sm q-mt-sm glossy shadow bg-secondary text-white" @click="newItem"/>
-    <q-checkbox class="q-mt-sm q-ml-lg" v-model="props.data.document.hideDone" label="Hide done items"/>
+    <q-checkbox class="q-mt-sm q-ml-lg" v-model="props.data.document.data.hideDone" label="Hide done items"/>
   </q-card-section>
 </template>
 
@@ -50,31 +50,26 @@ const getDefaults = () => {
   }
 }
 
-const removeItem = (idx) => props.data.document.items.splice(idx, 1)
+const removeItem = (idx) => props.data.document.data.items.splice(idx, 1)
 
 const newItem = () => {
   let item = {
     name: '',
     done: false
   }
-  props.data.document.items.push(item)
+  props.data.document.data.items.push(item)
   setTimeout(() => scrollRef.value.setScrollPercentage('vertical', 1.0), 10)
 }
 
 onMounted(() => {
   if (!props.data.edit)
-    props.data.document = getDefaults()
+    props.data.document = { data: getDefaults() }
   shown.value = true
   setTimeout(() => todoNameRef.value.focus(), 10)
 })
 
 const emit = defineEmits(['done'])
-
-const process = () => {
-  let todo = { type: 'todo', ...props.data.document }
-  // logger.trace('newOrEditTodo: process: ' + logger.json(todo))
-  emit('done', todo)
-}
+const process = () => emit('done', props.data.document)
 
 defineExpose({
   process

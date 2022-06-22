@@ -1,11 +1,11 @@
 
 <template>
   <q-card-section v-if="shown" class="items-center">
-    <q-input v-model="props.data.document.name" outlined label-color="black" label="Note Name" ref="noteNameRef" @keydown.enter.prevent="noteDescriptionRef.focus()" class="q-mb-sm"/>
+    <q-input v-model="props.data.document.data.name" outlined label-color="black" label="Note Name" ref="noteNameRef" @keydown.enter.prevent="noteDescriptionRef.focus()" class="q-mb-sm"/>
     <q-editor
       ref="noteDescriptionRef"
       class="q-mt-lg"
-      v-model="props.data.document.description"
+      v-model="props.data.document.data.description"
       :dense="$q.screen.lt.md"
       height="49vh"
       :toolbar="[
@@ -117,18 +117,13 @@ const getDefaults = () => {
 
 onMounted(() => {
   if (!props.data.edit)
-    props.data.document = getDefaults()
+    props.data.document = { data: getDefaults() }
   shown.value = true
   setTimeout(() => noteNameRef.value.focus(), 10)
 })
 
 const emit = defineEmits(['done'])
-
-const process = () => {
-  let note = { type: 'note', ...props.data.document }
-  // logger.trace('newOrEditNote: process: ' + logger.json(note))
-  emit('done', note)
-}
+const process = () => emit('done', props.data.document)
 
 defineExpose({
   process

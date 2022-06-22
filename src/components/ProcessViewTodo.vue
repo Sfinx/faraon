@@ -6,9 +6,9 @@
         <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
       </template>
     </q-field>
-    <q-field label="Description" stack-label outlined dense>
+    <q-field label="Description" stack-label outlined dense class="q-mt-md">
       <template v-slot:control>
-      <div class="self-center no-outline q-ma-xs" tabindex="0" v-html="props.data.description"></div>
+      <div class="self-center no-outline" tabindex="0" v-html="props.data.description"></div>
        </template>
     </q-field>
     <q-scroll-area ref="scrollRef" class="outline rounded-borders q-mt-md" style="height: 35vh; outline-width: thin">
@@ -25,7 +25,6 @@
 
 <script setup>
 
-import logger from '@/logger'
 import { ref } from 'vue'
 
 const scrollRef = ref(null)

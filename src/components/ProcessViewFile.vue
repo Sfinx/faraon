@@ -1,10 +1,10 @@
 
 <template>
   <!-- <q-card-section style="min-width: 70vh;"> -->
-    <q-field label="Name" stack-label readonly outlined dense class="q-mb-sm">
+    <q-field label="Name" stack-label outlined dense class="q-mb-sm">
       <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
     </q-field>
-    <q-field label="Description" stack-label readonly outlined dense class="q-mb-sm">
+    <q-field label="Description" stack-label outlined dense class="q-mb-sm">
       <div class="self-center no-outline" tabindex="0">{{ props.data.description }}</div>
     </q-field>
     <embed ref="fileRef" :type="props.data.mime" style="width: 100%; height: 100%">
@@ -68,6 +68,8 @@ onMounted(async () => {
         $q.$enotify('View File: Fetch error: ' + response.status)
   }
 })
+
+defineEmits(['update'])
 
 </script>
 

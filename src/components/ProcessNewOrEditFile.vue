@@ -1,15 +1,15 @@
 
 <template>
   <q-card-section v-if="shown" class="items-center" style="width: 40vw">
-    <q-input v-model="props.data.document.name" outlined label-color="black" label="File Name" ref="fileNameRef" @keydown.enter.prfile="fileDescriptionRef.focus()" class="q-mb-sm"/>
-    <q-input v-model="props.data.document.description" outlined label-color="black" label="File Description" ref="fileDescriptionRef"/>
+    <q-input v-model="props.data.document.data.name" outlined label-color="black" label="File Name" ref="fileNameRef" @keydown.enter.prfile="fileDescriptionRef.focus()" class="q-mb-sm"/>
+    <q-input v-model="props.data.document.data.description" outlined label-color="black" label="File Description" ref="fileDescriptionRef"/>
     <div class="row justify-between">
-      <q-file v-if="props.data.document.uploaded.on" style="width: 40%" class="q-mt-sm" outlined v-model="file" label="Select File" />
-      <q-input style="width: 40%" class="q-mt-sm" v-if="!props.data.document.uploaded.on" v-model="props.data.document.url" outlined label-color="black" label="File Path / URL"/>
-      <q-input style="width: 40%" class="q-mt-sm" v-model="props.data.document.mime" outlined label-color="black" label="File Type">
-        <q-tooltip anchor="top right" :offset="[30, 30]" >{{ sfinx.getFileTypeCategory(props.data.document.mime) }}</q-tooltip>
+      <q-file v-if="props.data.document.data.uploaded.on" style="width: 40%" class="q-mt-sm" outlined v-model="file" label="Select File" />
+      <q-input style="width: 40%" class="q-mt-sm" v-if="!props.data.document.data.uploaded.on" v-model="props.data.document.data.url" outlined label-color="black" label="File Path / URL"/>
+      <q-input style="width: 40%" class="q-mt-sm" v-model="props.data.document.data.mime" outlined label-color="black" label="File Type">
+        <q-tooltip anchor="top right" :offset="[30, 30]" >{{ sfinx.getFileTypeCategory(props.data.document.data.mime) }}</q-tooltip>
       </q-input>
-      <q-checkbox class="q-mt-sm dense" v-model="props.data.document.uploaded.on" label="Upload"/>
+      <q-checkbox class="q-mt-sm dense" v-model="props.data.document.data.uploaded.on" label="Upload"/>
     </div>
   </q-card-section>
 </template>
@@ -32,8 +32,8 @@ const upload = ref(null)
 let fileChanged = false
 
 watch(file, file => {
-  props.data.document.name = file.name
-  props.data.document.mime = file.type
+  props.data.document.data.name = file.name
+  props.data.document.data.mime = file.type
   fileChanged = true
 })
 
@@ -48,21 +48,20 @@ const startUpload = async () => {
   upload.value = await sfinx.uploadFile(file.value, (e, progress, done) => {
     if (e)
       $q.$enotify(e)
-    if (progress && props.data.document.uploaded.on)
+    if (progress && props.data.document.data.uploaded.on)
       uploadDialog.update({
-        title: props.data.document.name,
+        title: props.data.document.data.name,
         progress: parseFloat(progress)
       })
     if (done)
       logger.debug('file:' + file.value.name + ' uploaded ok in ' + done + ' seconds')
     if (e || done) {
-      let file = { type: 'file', ...props.data.document }
-      if (props.data.document.uploaded.on) {
-        file.uploaded.name = upload.value.url.substring(upload.value.url.lastIndexOf('/') + 1)
+      if (props.data.document.data.uploaded.on) {
+        props.data.document.data.uploaded.name = upload.value.url.substring(upload.value.url.lastIndexOf('/') + 1)
         setTimeout(() => upload.value = null, 20)
         uploadDialog.hide()
       }
-      emit('done', file)
+      emit('done', props.data.document)
     }
   })
 }
@@ -88,7 +87,7 @@ const getDefaults = () => {
 
 onMounted(() => {
   if (!props.data.edit)
-    props.data.document = getDefaults()
+    props.data.document = { data: getDefaults() }
   shown.value = true
   setTimeout(() => fileNameRef.value.focus(), 10)
 })
@@ -100,11 +99,11 @@ let uploadDialog
 
 const process = () => {
   // logger.trace('newOrEditFile: process: ' + logger.json(file))
-  if (props.data.document.uploaded.on && file.value && fileChanged) {
+  if (props.data.document.data.uploaded.on && file.value && fileChanged) {
     uploadDialog = $q.dialog({
       component: Progress,
       componentProps: {
-        title: props.data.document.name,
+        title: props.data.document.data.name,
         progress: 0,
         pause: uploadPauseResume
       }
@@ -115,10 +114,8 @@ const process = () => {
       }
     })
     startUpload()
-  } else {
-    let file = { type: 'file', ...props.data.document }
-    emit('done', file)
-  }
+  } else
+      emit('done', props.data.document)
 }
 
 defineExpose({
