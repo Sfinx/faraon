@@ -424,8 +424,13 @@ const deleteTheDocument = () => {
 
 const deleteDocument = () => {
   let docs = []
-  for (let d of documentsSelected.value)
+  for (let d of documentsSelected.value) {
+    if (d.type == 'file' && d.data.ciphertext) {
+      $q.$enotify('Encrypted files must be unlocked before deletion')
+      return
+    }
     docs.push(d._key)
+  }
   sfinx.sendMsg('DeleteDocument', res => {
     if (res.e)
       $q.$enotify(res.e)
