@@ -6,6 +6,7 @@ import { sha512 } from '@/crypto'
 import { store } from '@/boot/store'
 import * as tus from 'tus-js-client'
 import * as jose from 'jose'
+import { useQuasar } from 'quasar'
 
 let wss, _connected, _disconnected
 let dispatch = {}
@@ -14,6 +15,32 @@ let api_version = '0.0.1'
 let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
 
 export default {
+  $q: null,
+  prompt(title, message, type) {
+    if (!type)
+      type = 'text'
+    return new Promise((resolve, reject) => {
+      this.$q.dialog({
+        title,
+        message,
+        prompt: {
+          model: '',
+          type
+        },
+        cancel: true,
+        persistent: true
+      }).onOk(data => resolve(data)).onCancel(() => reject()).onDismiss(() => reject())
+    })
+  },
+  async getMasterKey() {
+    try {
+      if (!this.masterKey || this.masterKey.length < 8)
+        this.masterKey = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
+    } catch (e) {
+        this.masterKey = ''
+    }
+    return this.masterKey
+  },
   alg: 'PBES2-HS256+A128KW',
   enc: 'A256GCM',
   aad(d) {
@@ -249,6 +276,8 @@ export default {
     })
   },
   connect(connected, disconnected) {
+    if (!this.$q)
+      this.$q = useQuasar()
     _connected = connected
     _disconnected = disconnected
     if (wss && (wss.readyState !== WebSocket.CLOSED))

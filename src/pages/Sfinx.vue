@@ -83,7 +83,7 @@
             :rows-per-page-options="[0]"
             row-key="_key"
             @row-click="selectDocument"
-            @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document })"
+            @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document, hidden: true })"
             no-data-label="No documents yet"
             no-results-label="No documents found"
           >
@@ -156,7 +156,7 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="newOrEditDocumentDialog.on" persistent transition="scale">
+    <q-dialog v-model="newOrEditDocumentDialog.on" :hidden="newOrEditDocumentDialog.hidden" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="user-select: none; min-width: fit-content; min-height: 40%">
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ newOrEditDocumentDialog.title }}</q-toolbar-title>
@@ -164,7 +164,8 @@
         </q-toolbar>
         <q-card-section class="items-center q-mx-xs q-mt-xs" style="min-height: fit-content;">
             <process-document ref="processDocumentRef" :type="newOrEditDocumentDialog.type" op="NewOrEdit" :data="newOrEditDocumentDialog"
-              @error="e => { $q.$enotify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="newOrEditDocumentDone"/>
+              @error="e => { $q.$enotify('NewOrEditDocument Error: ' + e); newOrEditDocumentDialog.on = false }" @done="newOrEditDocumentDone" @ready="newOrEditDocumentDialog.hidden = false"
+              @update="doc => newOrEditDocumentDialog.document.data = doc"/>
         </q-card-section>
         <q-card-section class="dense items-center q-pb-xs">
           <div @click="showSliceSelectionDialog = true">
@@ -196,7 +197,7 @@
         <q-card-actions class="dense q-mb-sm q-mx-sm" align="between">
           <div class="row">
             <q-btn class="bg-secondary q-mr-lg text-white" glossy label="Clear Slices" @click="newOrEditDocumentClearSlices()"/>
-            <q-select style="min-width: 120px" dense v-model="newOrEditDocumentDialog.encrypt" :options="encryptOptions" label="Encrypt" />
+            <q-select style="min-width: 120px" dense v-model="newOrEditDocumentDialog.encrypted" :options="encryptOptions" label="Encrypt" />
           </div>
           <div>
             <q-btn class="bg-secondary text-white" glossy label="Done" @click="processDocumentRef.processDocument()"/>
@@ -205,7 +206,7 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="viewDocumentDialog.on" persistent transition="scale">
+    <q-dialog v-model="viewDocumentDialog.on" :hidden="viewDocumentDialog.hidden" persistent transition="scale">
       <q-card class="q-dialog-plugin" style="min-width: 35vw;">
         <q-toolbar style="user-select: none;" class="bg-primary glossy text-white">
           <q-toolbar-title>{{ 'View ' + sfinx.getFullDocumentType(viewDocumentDialog.document) +' \'' + viewDocumentDialog.document.data.name + '\'' }}</q-toolbar-title>
@@ -213,7 +214,7 @@
         </q-toolbar>
         <q-card-section class="q-mx-xs q-mt-xs" style="min-height: fit-content; padding: 6px">
             <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document.data" @update="viewDocumentUpdate"
-              @error="e => { $q.$enotify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }"/>
+              @error="e => { $q.$enotify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" @ready="viewDocumentDialog.hidden = false"/>
         </q-card-section>
         <q-card-section class="dense">
           <q-select
@@ -346,7 +347,7 @@ const sliceDialogTitle = ref('')
 const documentRows = ref([])
 const documentsSelected = ref([])
 const menuSlice = reactive(getSliceDefaults())
-let viewDocumentDialog = reactive({ on: false, document: null })
+let viewDocumentDialog = reactive({ on: false, document: null, hidden: true })
 let documentsSearchFilter = reactive({ search: '' })
 const encryptOptions = [
   {
@@ -362,6 +363,7 @@ const encryptOptions = [
     value: 2
   }
 ]
+
 // refs
 const selectSliceRef = ref(null)
 const processDocumentRef = ref(null)
@@ -440,7 +442,8 @@ let newOrEditDocumentDialog = reactive({
   type: null,
   edit: false,
   document: null,
-  title: ''
+  title: '',
+  hidden: true
 })
 
 const editDocument = (doc) => {
@@ -461,46 +464,23 @@ const newOrEditDocument = (type, edit, document) => {
   let slices = []
   for (let s of document.slices)
     slices.push(Object.assign({}, s))
-  let encrypt = document.encrypt ? encryptOptions[document.encrypt] : encryptOptions[0]
+  let encrypted = document.encrypt ? encryptOptions[document.encrypt] : encryptOptions[0]
   if (!edit)
-    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices, encrypt })
+    Object.assign(newOrEditDocumentDialog, { on: true, hidden: true, type, edit, slices, encrypted })
   else
-    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices, encrypt, document })
-}
-
-function prompt(title, message, type) {
-  if (!type)
-    type = 'text'
-  return new Promise((resolve, reject) => {
-    $q.dialog({
-      title,
-      message,
-      prompt: {
-        model: '',
-        type
-      },
-      cancel: true,
-      persistent: true
-    }).onOk(data => resolve(data))
-  })
-}
-
-async function getMasterKey() {
-  if (!sfinx.masterKey || sfinx.masterKey.length < 8)
-    sfinx.masterKey = await prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
-  return sfinx.masterKey
+    Object.assign(newOrEditDocumentDialog, { on: true, hidden: true, type, edit, slices, encrypted, document })
 }
 
 const newOrEditDocumentDone = async (doc) => {
   // remove unneeded data from document object
   delete doc.slices
-  if (newOrEditDocumentDialog.encrypt.value !== 0) {
+  if (newOrEditDocumentDialog.encrypted.value !== 0) {
     let key, aad
-    if (newOrEditDocumentDialog.encrypt.value == 1)
-      key = await getMasterKey()
+    if (newOrEditDocumentDialog.encrypted.value == 1)
+      key = await sfinx.getMasterKey()
     else {
-      key = await prompt('Unique Password', 'Enter the Unique Password', 'password')
-      aad = await prompt('AAD for ' + newOrEditDocumentDialog.title, 'Enter the Hint for document encrypted by Unique Password')
+      key = await sfinx.prompt('Unique Password', 'Enter the Unique Password', 'password')
+      aad = await sfinx.prompt('AAD for ' + newOrEditDocumentDialog.title, 'Enter the Hint for document encrypted by Unique Password')
       if (!aad?.length)
         return $q.$enotify('Invalid AAD')
     }
@@ -531,11 +511,14 @@ const newOrEditDocumentDone = async (doc) => {
   }
 }
 
-const viewDocumentUpdate = (doc) => {
-  sfinx.sendMsg('EditDocument', res => {
-    if (res.e)
-      $q.$enotify(res.e)
-  }, { data: doc, _key: viewDocumentDialog.document._key })
+const viewDocumentUpdate = (doc, decrypt) => {
+  if (decrypt) // replace decrypted with master key
+    viewDocumentDialog.document.data = doc
+  else
+    sfinx.sendMsg('EditDocument', res => {
+      if (res.e)
+        $q.$enotify(res.e)
+    }, { data: doc, _key: viewDocumentDialog.document._key })
 }
 
 const documentPresent = (row) => {
@@ -911,9 +894,9 @@ const refreshDocuments = () => {
           if (d.data.aad) { // unique key
             encrypt = 2
             continue
-          } else
-              key = await getMasterKey()
-          if (key?.length < 8)
+          } else if (sfinx.masterKey != '') { // do not ask the master key each refresh time, '' means skip for now
+              key = await sfinx.getMasterKey()
+          if (key.length < 8)
             $q.$enotify('Encrypt password is too short (< 8 characters)')
           else
             d.data = await sfinx.decrypt(d.data, key)
@@ -921,6 +904,7 @@ const refreshDocuments = () => {
               $q.$enotify(d.data.error)
               delete d.data.error
             }
+          }
         }
         d.encrypt = encrypt
       }
@@ -928,8 +912,6 @@ const refreshDocuments = () => {
     }
   }, filter)
 }
-
-// key = await prompt('Unique Password', 'Enter Unique Password for AAD [ ' + sfinx.aad(d.data) + ' ]')
 
 const plotlyClick = e => {
   // console.log('plotlyClick', e)
