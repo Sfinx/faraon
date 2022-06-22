@@ -61,24 +61,22 @@ const documentData = ref(null)
 onMounted(async () => {
   let type = sfinx.getFullDocumentType(props)
   // logger.trace('ProcessDocument type:' + type + ', op: ' + props.op)
-  if (props.op == 'View' && props.data.ciphertext) {
+  if (props.op == 'View' && props.data.ciphertext) { // decrypt on view
     let { data, encrypt, error } = await decrypt(props.data)
     if (error)
       return emit('error', error)
     documentData.value = data
     if (encrypt == 1)
       emit('update', data, true)
-  } else if (props.op == 'NewOrEdit' && props.data.document.data.ciphertext) {
+  } else if (props.op == 'NewOrEdit' && props.data.edit && props.data.document.data.ciphertext) { // decrypt on edit
       let { data, encrypt, error } = await decrypt(props.data.document.data)
       if (error)
         return emit('error', error)
       if (encrypt == 1)
         emit('update', data, true)
       documentData.value = { ...props.data, ...{ document: { data } }}
-      console.log('Process0', encrypt, data)
   } else // unencrypted
       documentData.value = props.data
-  console.log('Process', props.data)
   import(`./Process${props.op + type}.vue`).then(i => component.value = i.default).catch(e => emit('error', e))
   emit('ready')
 })

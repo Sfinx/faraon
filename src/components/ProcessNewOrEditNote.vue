@@ -116,7 +116,6 @@ const getDefaults = () => {
 }
 
 onMounted(() => {
-  console.log('Edit', props.data)
   if (!props.data.edit)
     props.data.document = { data: getDefaults() }
   shown.value = true

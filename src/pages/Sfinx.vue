@@ -313,13 +313,13 @@ const maxColumnWidth = 9
 
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
-  { name: 'name', align: 'left', label: 'Name', field: r => r.data.ciphertext ? '🔒' : r.data.name, sortable: true, format: (v, r) => {
+  { name: 'name', align: 'left', label: 'Name', field: r => r.data.ciphertext ? ((r.encrypt == 1 ? 'M' : 'U') + '🔒') : r.data.name, sortable: true, format: (v, r) => {
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
       return v
     }
   },
-  { name: 'description', align: 'center', label: 'Description', field: r => r.data.ciphertext ? '🔒' : r.data.description, sortable: true, format: (v, r) => {
+  { name: 'description', align: 'center', label: 'Description', field: r => r.data.ciphertext ? ((r.encrypt == 1 ? 'M' : 'U') + '🔒') : r.data.description, sortable: true, format: (v, r) => {
       v = stripHTML(v)
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
@@ -474,6 +474,7 @@ const newOrEditDocument = (type, edit, document) => {
 const newOrEditDocumentDone = async (doc) => {
   // remove unneeded data from document object
   delete doc.slices
+  let data = doc.data
   if (newOrEditDocumentDialog.encrypted.value !== 0) {
     let key, aad
     if (newOrEditDocumentDialog.encrypted.value == 1)
@@ -486,9 +487,9 @@ const newOrEditDocumentDone = async (doc) => {
     }
     if (key?.length < 8)
       return $q.$enotify('Encrypt password is too short (< 8 characters)')
-    doc.data = await sfinx.encrypt(doc.data, key, aad)
+    data = await sfinx.encrypt(doc.data, key, aad)
   }
-  doc = Object.assign({}, { ...doc, type: newOrEditDocumentDialog.type.toLowerCase(), slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
+  let newDoc = Object.assign({}, { ...doc, ...{ data }, type: newOrEditDocumentDialog.type.toLowerCase(), slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
     refreshDocuments()
     documentsSelected.value = []
@@ -500,14 +501,14 @@ const newOrEditDocumentDone = async (doc) => {
         $q.$enotify(res.e)
       else
         ok()
-    }, doc)
+    }, newDoc)
   } else {
     sfinx.sendMsg('NewDocument', res => {
       if (res.e)
         $q.$enotify(res.e)
       else
         ok()
-    }, doc)
+    }, newDoc)
   }
 }
 
@@ -888,11 +889,12 @@ const refreshDocuments = () => {
     else {
       $q.$store.total_documents = res.d.length
       for (let d of res.d) {
-        let encrypt = 0, key
+        d.encrypt = 0
+        let key
         if (d.data.ciphertext) {
-          encrypt = 1
+          d.encrypt = 1
           if (d.data.aad) { // unique key
-            encrypt = 2
+            d.encrypt = 2
             continue
           } else if (sfinx.masterKey != '') { // do not ask the master key each refresh time, '' means skip for now
               key = await sfinx.getMasterKey()
@@ -906,7 +908,6 @@ const refreshDocuments = () => {
             }
           }
         }
-        d.encrypt = encrypt
       }
       documentRows.value = res.d
     }

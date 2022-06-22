@@ -1,8 +1,6 @@
 
 current:
 
- - remember previous encryption method
- - documents must be re-encrypted after edit if encrypted is set in edit dialog
  - generate random master key, encrypt it by master password and store in db
  - add bot command "view next N events" in telegram
 

@@ -11,7 +11,7 @@
     "serve": "serve -l 9001 dist/spa"
   },
   "dependencies": {
-    "@quasar/extras": "^1.14.0",
+    "@quasar/extras": "^1.14.1",
     "fecha": "^4.2.3",
     "jose": "^4.8.1",
     "pbkdf2": "^3.1.2",
