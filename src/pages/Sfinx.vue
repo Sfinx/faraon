@@ -194,8 +194,13 @@
         </div>
         </q-card-section>
         <q-card-actions class="dense q-mb-sm q-mx-sm" align="between">
-          <q-btn class="bg-secondary text-white" glossy label="Clear Slices" @click="newOrEditDocumentClearSlices()"/>
-          <q-btn class="bg-secondary text-white" glossy label="Done" @click="processDocumentRef.processDocument()"/>
+          <div class="row">
+            <q-btn class="bg-secondary q-mr-lg text-white" glossy label="Clear Slices" @click="newOrEditDocumentClearSlices()"/>
+            <q-select style="min-width: 120px" dense v-model="newOrEditDocumentDialog.encrypt" :options="encryptOptions" label="Encrypt" />
+          </div>
+          <div>
+            <q-btn class="bg-secondary text-white" glossy label="Done" @click="processDocumentRef.processDocument()"/>
+          </div>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -280,7 +285,7 @@
 
 <script setup>
 
-import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch, resolveComponent } from 'vue'
 import sfinx from '@/sfinx'
 import { useQuasar } from 'quasar'
 import logger from '@/logger'
@@ -290,7 +295,6 @@ import searchSlice from 'components/SearchSlice.vue'
 import ProcessDocument from 'components/ProcessDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
-import { data } from 'autoprefixer'
 
 const $q = useQuasar()
 
@@ -308,13 +312,13 @@ const maxColumnWidth = 9
 
 const documentColumns = [
   { name: 'type', align: 'left', label: 'Type', field: 'type', sortable: true, headerStyle: "max-width: 40px" },
-  { name: 'name', align: 'left', label: 'Name', field: r => r.data.name, sortable: true, format: (v, r) => {
+  { name: 'name', align: 'left', label: 'Name', field: r => r.data.ciphertext ? '🔒' : r.data.name, sortable: true, format: (v, r) => {
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
       return v
     }
   },
-  { name: 'description', align: 'center', label: 'Description', field: r => r.data.description, sortable: true, format: (v, r) => {
+  { name: 'description', align: 'center', label: 'Description', field: r => r.data.ciphertext ? '🔒' : r.data.description, sortable: true, format: (v, r) => {
       v = stripHTML(v)
       if (v.length > maxColumnWidth)
         return v.substring(0, maxColumnWidth) + '..'
@@ -344,7 +348,20 @@ const documentsSelected = ref([])
 const menuSlice = reactive(getSliceDefaults())
 let viewDocumentDialog = reactive({ on: false, document: null })
 let documentsSearchFilter = reactive({ search: '' })
-
+const encryptOptions = [
+  {
+    label: 'None',
+    value: 0
+  },
+  {
+    label:'By Master Key',
+    value: 1
+  },
+  {
+    label: 'By Unique Key',
+    value: 2
+  }
+]
 // refs
 const selectSliceRef = ref(null)
 const processDocumentRef = ref(null)
@@ -357,6 +374,8 @@ const documentsSearchRef = ref(null)
 const documentsSearchFilterDocs = (rows, fo, cols, getCellValue) => {
   let search = fo.search ? fo.search.toLowerCase() : ''
   return rows.filter(row => cols.some(col => {
+    if (row.data.ciphertext) // show locked documents by default if nothing entered in search
+      return documentsSearchFilter.search.length ? false : true
     const name = row.data.name.length ? row.data.name.toLowerCase() : ''
     const description = row.data.description.length ? row.data.description.toLowerCase() : ''
     if ((name.indexOf(search) == -1) && (description.indexOf(search) == -1))
@@ -442,22 +461,58 @@ const newOrEditDocument = (type, edit, document) => {
   let slices = []
   for (let s of document.slices)
     slices.push(Object.assign({}, s))
+  let encrypt = document.encrypt ? encryptOptions[document.encrypt] : encryptOptions[0]
   if (!edit)
-    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices })
+    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices, encrypt })
   else
-    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices, document })
+    Object.assign(newOrEditDocumentDialog, { on: true, type, edit, slices, encrypt, document })
 }
 
-const newOrEditDocumentDone = (doc) => {
-  newOrEditDocumentDialog.on = false
-  if (!doc)
-    return
+function prompt(title, message, type) {
+  if (!type)
+    type = 'text'
+  return new Promise((resolve, reject) => {
+    $q.dialog({
+      title,
+      message,
+      prompt: {
+        model: '',
+        type
+      },
+      cancel: true,
+      persistent: true
+    }).onOk(data => resolve(data))
+  })
+}
+
+async function getMasterKey() {
+  if (!sfinx.masterKey || sfinx.masterKey.length < 8)
+    sfinx.masterKey = await prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
+  return sfinx.masterKey
+}
+
+const newOrEditDocumentDone = async (doc) => {
   // remove unneeded data from document object
   delete doc.slices
+  if (newOrEditDocumentDialog.encrypt.value !== 0) {
+    let key, aad
+    if (newOrEditDocumentDialog.encrypt.value == 1)
+      key = await getMasterKey()
+    else {
+      key = await prompt('Unique Password', 'Enter the Unique Password', 'password')
+      aad = await prompt('AAD for ' + newOrEditDocumentDialog.title, 'Enter the Hint for document encrypted by Unique Password')
+      if (!aad?.length)
+        return $q.$enotify('Invalid AAD')
+    }
+    if (key?.length < 8)
+      return $q.$enotify('Encrypt password is too short (< 8 characters)')
+    doc.data = await sfinx.encrypt(doc.data, key, aad)
+  }
   doc = Object.assign({}, { ...doc, type: newOrEditDocumentDialog.type.toLowerCase(), slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
     refreshDocuments()
     documentsSelected.value = []
+    newOrEditDocumentDialog.on = false
   }
   if (newOrEditDocumentDialog.edit) {
     sfinx.sendMsg('EditDocument', res => {
@@ -844,15 +899,37 @@ const refreshDocuments = () => {
     filter.slices.push({ id: s.id })
   if (!filter.slices.length && slicesSearch.value.length)
     return documentRows.value = []
-  sfinx.sendMsg('GetDocuments', res => {
+  sfinx.sendMsg('GetDocuments', async res => {
     if (res.e)
       $q.$enotify(res.e)
     else {
       $q.$store.total_documents = res.d.length
+      for (let d of res.d) {
+        let encrypt = 0, key
+        if (d.data.ciphertext) {
+          encrypt = 1
+          if (d.data.aad) { // unique key
+            encrypt = 2
+            continue
+          } else
+              key = await getMasterKey()
+          if (key?.length < 8)
+            $q.$enotify('Encrypt password is too short (< 8 characters)')
+          else
+            d.data = await sfinx.decrypt(d.data, key)
+            if (d.data.error) {
+              $q.$enotify(d.data.error)
+              delete d.data.error
+            }
+        }
+        d.encrypt = encrypt
+      }
       documentRows.value = res.d
     }
   }, filter)
 }
+
+// key = await prompt('Unique Password', 'Enter Unique Password for AAD [ ' + sfinx.aad(d.data) + ' ]')
 
 const plotlyClick = e => {
   // console.log('plotlyClick', e)

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { sha512 } from '@/crypto'
 import { store } from '@/boot/store'
 import * as tus from 'tus-js-client'
+import * as jose from 'jose'
 
 let wss, _connected, _disconnected
 let dispatch = {}
@@ -13,6 +14,31 @@ let api_version = '0.0.1'
 let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
 
 export default {
+  alg: 'PBES2-HS256+A128KW',
+  enc: 'A256GCM',
+  aad(d) {
+    const decoder = new TextDecoder()
+    return decoder.decode(jose.base64url.decode(d.aad))
+  },
+  async decrypt(d, k) {
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
+    try {
+      let data = await jose.flattenedDecrypt(d, encoder.encode(k))
+      return logger.parse(decoder.decode(data.plaintext))
+    } catch(e) {
+        logger.warn('decrypt: ' + logger.json(e))
+        return { ...d, error: e.message }
+    }
+  },
+  async encrypt(d, k, aad) {
+    let data = logger.json(d)
+    const encoder = new TextEncoder()
+    let jwe = new jose.FlattenedEncrypt(encoder.encode(data)).setProtectedHeader({ alg: this.alg, enc: this.enc })
+    if (aad)
+      jwe.setAdditionalAuthenticatedData(encoder.encode(aad))
+    return await jwe.encrypt(encoder.encode(k))
+  },
   getFileTypeCategory(mime) {
     let categories = [
       {
