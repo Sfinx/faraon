@@ -39,4 +39,4 @@ yarn
 make b
 ```
 
-Next point your browser to sfinx server [ http://dev.sfinx.in/ ]
+Next point your browser to dev sfinx server

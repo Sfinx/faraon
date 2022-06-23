@@ -1,6 +1,8 @@
 
 current:
 
+ - create beta server
+
 misc:
 
  - implement multiple documents slices editing (all must have the same slices only)
