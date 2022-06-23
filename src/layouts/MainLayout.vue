@@ -17,7 +17,7 @@
             flat
             dense
             icon="mdi-account-key"
-            @click="showSimpleProfileDialog"
+            @click="showProfileDialog()"
         />
       </q-toolbar>
     </q-header>
@@ -70,7 +70,6 @@
         </q-item>
 
     </q-list>
-
     </q-drawer>
 
     <q-dialog v-model="showLoginDlg" persistent transition="scale">
@@ -99,6 +98,29 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="profileDialog.on" persistent transition="scale">
+      <q-card class="q-dialog-plugin" style="min-width: fit-content; user-select: none">
+        <q-toolbar class="bg-primary glossy text-white">
+          <q-toolbar-title>Profile</q-toolbar-title>
+          <q-btn icon="close" flat round dense v-close-popup/>
+        </q-toolbar>
+        <q-card-section class="column">
+          <q-input v-model="profileDialog.telegramToken" style="min-width: 30vw" outlined label-color="black" label="Telegram Token" class="q-mb-sm"/>
+          <form v-if="profileDialog.masterKey != null">
+            <q-input autocomplete="current-password" v-model="profileDialog.currentMasterKeyPass" type="password" outlined label-color="black" label="Current Password" class="q-mb-sm"/>
+            <q-input autocomplete="current-password" v-model="profileDialog.newMasterKeyPass" type="password" outlined label-color="black" label="New Password" class="q-mb-sm"/>
+          </form>
+          <div v-if="profileDialog.masterKey == null" class="q-mt-sm row justify-center" >
+            <q-btn class="bg-secondary text-white" style="width: 300px;" glossy label="Generate new Master Key" @click="genNewMasterKey()"/>
+          </div>
+        </q-card-section>
+         <q-card-actions align="right">
+          <q-btn class="bg-primary text-white" glossy label="Update" @click="updateProfile()"/>
+          <q-btn class="bg-primary text-white" glossy label="Cancel" @click="profileDialog.on = false"/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-footer elevated class="bg-primary text-white text-h5" style="user-select: none">
       <q-toolbar>
         <div v-if="router.currentRoute.value.path == '/sfinx'">
@@ -119,7 +141,7 @@
 
 <script setup>
 
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import sfinx from '@/sfinx'
 import { useQuasar } from 'quasar'
@@ -142,27 +164,51 @@ const user = ref('')
 const pass = ref('')
 let sid
 
-function showSimpleProfileDialog () {
-  $q.dialog({
-    title: 'Profile',
-    message: 'Set Telegram Bot token',
-    prompt: {
-      model: '',
-      type: 'text'
-    },
-    cancel: true,
-    persistent: true
-  }).onOk(data => {
-    if (!data.length)
-      return
-    sfinx.sendMsg('UpdateProfile', res => {
+let profileDialog = reactive({
+  telegramToken: '',
+  currentMasterKeyPass: '',
+  newMasterKeyPass : '',
+  masterKey: null,
+  setMasterKey: false,
+  on: false
+})
+
+async function genNewMasterKey() {
+  let k = await sfinx.getMasterKey(true)
+  if (k.e)
+    return $q.$enotify('genNewMasterKey: ' + k.e)
+  console.log(k)
+  profileDialog.masterKey = k.jwe
+  profileDialog.setMasterKey = true
+  $q.$notify('New Master Key is created')
+}
+
+function showProfileDialog() {
+  sfinx.sendMsg('GetProfile', res => {
       if (res.e)
         $q.$enotify(res.e)
-    }, {
-      telegramToken: data
-    })
-  }).onCancel(() => {
-  }).onDismiss(() => {
+      else
+        Object.assign(profileDialog, { on: true, telegramToken: res.d.telegramToken, masterKey: res.d.masterKey })
+  })
+}
+
+async function updateProfile() {
+  if (profileDialog.newMasterKeyPass.length && profileDialog.currentMasterKeyPass.length) {
+    let m = await sfinx.decrypt(profileDialog.masterKey, profileDialog.currentMasterKeyPass)
+    if (m.e)
+      return $q.$enotify('getMasterKey: ' + m.e)
+    profileDialog.masterKey = await sfinx.encrypt(m.d, profileDialog.newMasterKeyPass)
+    profileDialog.setMasterKey = true
+  } else if (profileDialog.newMasterKeyPass.length || profileDialog.currentMasterKeyPass.length)
+      return $q.$enotify('Empty Master Key password')
+  sfinx.sendMsg('UpdateProfile', res => {
+    if (res.e)
+      $q.$enotify(res.e)
+    else
+      profileDialog.on = false
+  }, {
+    telegramToken: profileDialog.telegramToken,
+    masterKey: profileDialog.setMasterKey ? profileDialog.masterKey : undefined
   })
 }
 

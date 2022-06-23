@@ -106,7 +106,7 @@ const init = (reinit) => {
 }
 
 const select = e => {
-  let p = e?.points??[0]
+  let p = e?.points?.[0]
   if (!p)
     return true
   if (keyModifier == 'Shift')

@@ -6,10 +6,6 @@ current:
 misc:
 
  - implement multiple documents slices editing (all must have the same slices only)
- - implement slice semantics (json-ld)
- - implement basic AI agents:
-   - watcher
-   - harvester
  - switch note editor to https://github.com/flyween/vue3-quill
  - transact edit/delete operations in DB that consist of several steps
  - add div zoom by scroll/pan event to slices
@@ -28,4 +24,12 @@ misc:
  - write automated tests (puppeteer based)
  - connect ebook reader and save reading history in DB (pages, annotations, etc.) for PDF/EPUB/DJVU/TXT formats
  - implement file content encryption upon upload
+
+next:
+- add expose feature for slices by sfinx:// URL (permissions / credentials) / add "remote connected" option to slices / integrate search queries
+	- add public API endpoint to sfinxd
+- implement slice semantics (json-ld)
+- implement basic AI agents:
+   - watcher
+   - harvester
 

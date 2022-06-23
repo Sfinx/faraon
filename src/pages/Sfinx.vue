@@ -492,7 +492,7 @@ const newOrEditDocumentDone = async (doc) => {
     }
     if (key.e)
       return $q.$enotify(key.e)
-    data = await sfinx.encrypt(doc.data, key.k, aad?.k)
+    data = await sfinx.encrypt(logger.json(doc.data), key.k, aad?.k)
   }
   let newDoc = Object.assign({}, { ...doc, ...{ data }, type: newOrEditDocumentDialog.type.toLowerCase(), slices: newOrEditDocumentDialog.slices, _key: newOrEditDocumentDialog.edit ? newOrEditDocumentDialog.document._key : undefined })
   const ok = () => {
@@ -905,11 +905,11 @@ const refreshDocuments = () => {
               if (key.e)
                 $q.$enotify(key.e)
               else {
-                d.data = await sfinx.decrypt(d.data, key.k)
-                if (d.data.error) {
-                  $q.$enotify(d.data.error)
-                  delete d.data.error
-                }
+                let data = await sfinx.decrypt(d.data, key.k)
+                if (data.e)
+                  $q.$enotify('GetDocuments: ' + data.e)
+                else
+                  d.data = logger.parse(data.d)
               }
           }
         }

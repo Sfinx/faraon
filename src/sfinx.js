@@ -46,36 +46,28 @@ export default {
     })
   },
   shortPassError: 'Unlock password is too short (< 8 characters)',
-  async genMasterKey() {
-    const encoder = new TextEncoder()
+  async genMasterKey(donotset) {
+    let pass = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
+    if (pass.length < 8)
+      return { e: 'getMasterKey: ' + this.shortPassError }
     let key = await this.sendMsgPromise('GetMasterKey')
-    if (!key.length) {
+    if (!key.length || !Object.keys(key[0]).length) {
       const newKey = crypto.getRandomValues(new Uint8Array(32))
-      let jwe = new jose.FlattenedEncrypt(encoder.encode(newKey)).setProtectedHeader({ alg: this.alg, enc: this.enc })
-      let pass = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
-      if (pass.length < 8)
-        return { e: this.shortPassError }
-      jwe = await jwe.encrypt(encoder.encode(pass))
-      await this.sendMsgPromise('SetMasterKey', jwe)
-      return { k: newKey }
+      let jwe = await this.encrypt(newKey, pass)
+      if (!donotset)
+        await this.sendMsgPromise('SetMasterKey', jwe)
+      return { k: newKey, jwe }
     } else { // decrypt the key
-        const decoder = new TextDecoder()
-        let pass = await this.prompt('Master Key', 'Enter the Master Key Unlock Password', 'password')
-        if (pass.length < 8)
-          return { e: this.shortPassError }
-        try {
-          let data = await jose.flattenedDecrypt(key[0], encoder.encode(pass))
-          let dbKey = decoder.decode(data.plaintext)
-          return { k: dbKey }
-        } catch (e) {
-            return { e: 'genMasterKey: ' + e.message }
-        }
+        let m = await this.decrypt(key[0], pass)
+        if (m.e)
+          return { e: 'getMasterKey: ' + m.e }
+        return { k: m.d }
     }
   },
-  async getMasterKey() {
+  async getMasterKey(donotset) {
     if (this.masterKey && this.masterKey.length)
       return { k: this.masterKey }
-    let key = await this.genMasterKey()
+    let key = await this.genMasterKey(donotset)
     this.masterKey = key.e ? '' : key.k
     return key
   },
@@ -90,15 +82,14 @@ export default {
     const decoder = new TextDecoder()
     try {
       let data = await jose.flattenedDecrypt(d, encoder.encode(k))
-      return logger.parse(decoder.decode(data.plaintext))
+      return { d: decoder.decode(data.plaintext) }
     } catch(e) {
-        return { ...d, error: 'Document decrypt: ' + e.message }
+        return { d, e: e.message }
     }
   },
   async encrypt(d, k, aad) {
-    let data = logger.json(d)
     const encoder = new TextEncoder()
-    let jwe = new jose.FlattenedEncrypt(encoder.encode(data)).setProtectedHeader({ alg: this.alg, enc: this.enc })
+    let jwe = new jose.FlattenedEncrypt(encoder.encode(d)).setProtectedHeader({ alg: this.alg, enc: this.enc })
     if (aad)
       jwe.setAdditionalAuthenticatedData(encoder.encode(aad))
     return await jwe.encrypt(encoder.encode(k))

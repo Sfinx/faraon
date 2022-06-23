@@ -45,10 +45,10 @@ async function decrypt(d) {
   } else
       key = await sfinx.getMasterKey()
   if (key.e)
-    return { data, encrypt, error: e }
+    return { data, encrypt, error: key.e }
   data = await sfinx.decrypt(d, key.k)
-  error = data.error ? data.error : undefined
-  return { data, encrypt, error }
+  error = data.e ? data.e : undefined
+  return { data: logger.parse(data.d), encrypt, error }
 }
 
 const documentData = ref(null)
