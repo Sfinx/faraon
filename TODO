@@ -1,8 +1,6 @@
 
 current:
 
- - add bot command "view next N events" in telegram
-
 misc:
 
  - implement multiple documents slices editing (all must have the same slices only)
@@ -26,6 +24,7 @@ misc:
  - implement file content encryption upon upload
 
 next:
+
 - add expose feature for slices by sfinx:// URL (permissions / credentials) / add "remote connected" option to slices / integrate search queries
 	- add public API endpoint to sfinxd
 - implement slice semantics (json-ld)
