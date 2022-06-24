@@ -46,20 +46,24 @@ const uploadPauseResume = (paused) => {
 
 const startUpload = async () => {
   upload.value = await sfinx.uploadFile(file.value, (e, progress, done) => {
-    if (e)
+    let close = () => {
+      setTimeout(() => upload.value = null, 20)
+      uploadDialog.hide()
+    }
+    if (e) {
       $q.$enotify(e)
+      close()
+    }
     if (progress && props.data.document.data.uploaded.on)
       uploadDialog.update({
         title: props.data.document.data.name,
         progress: parseFloat(progress)
       })
-    if (done)
+    if (done) {
       logger.debug('file:' + file.value.name + ' uploaded ok in ' + done + ' seconds')
-    if (e || done) {
       if (props.data.document.data.uploaded.on) {
         props.data.document.data.uploaded.name = upload.value.url.substring(upload.value.url.lastIndexOf('/') + 1)
-        setTimeout(() => upload.value = null, 20)
-        uploadDialog.hide()
+        close()
       }
       emit('done', props.data.document)
     }

@@ -11,10 +11,11 @@ import { useQuasar } from 'quasar'
 let wss, _connected, _disconnected
 let dispatch = {}
 let authAttempted
-let api_version = '0.0.1'
-let endpoint = 'wss://' + location.hostname + '/sfinx/' + api_version
+let sfinxAPIVersion = '0.0.2'
+let endpoint = 'wss://' + location.hostname + '/sfinx/' + sfinxAPIVersion
 
 export default {
+  _1_SECOND: 1000,
   $q: null,
   async passPrompt(title, message, type) {
     let pass = await this.prompt(title, message, type)
@@ -178,9 +179,12 @@ export default {
   async uploadFile(file, cb) {
     // if (file.size > 100 * 1024 * 1024)
     //   return cb('Too big file (> 100Mb)')
-    let now = () => (new Date().getTime()) / 1000
+    this.$q.loading.show({ message: 'Calculating ' + file.name + ' csum..' })
+    let csum = await this.csum(file, 'SHA-256')
+    this.$q.loading.hide()
+    let now = () => (new Date().getTime()) / this._1_SECOND
     let started = now()
-    let headers = { user: store.loggedUser.footer, authToken: store.authToken, name: file.name, type: file.type, csum: await this.csum(file, 'SHA-256') }
+    let headers = { user: store.loggedUser.footer, authToken: store.authToken, name: file.name, type: file.type, csum }
     let upload = new tus.Upload(file, {
       endpoint: 'https://' + location.hostname + '/uploads/',
       headers,
@@ -193,7 +197,7 @@ export default {
       onProgress: (bytesUploaded, bytesTotal) => cb(null, (bytesUploaded / bytesTotal * 100).toFixed(2), null),
       onShouldRetry: (err, retryAttempt, options) => {
         let status = err.originalResponse ? err.originalResponse.getStatus() : 0
-        if (status == 403)
+        if (status == 403 || status == 502)
           return false
         return true
       }
@@ -266,8 +270,8 @@ export default {
      logger.debug('Sfinx: Default message dispatch, msg: ' + ((app.parameters.debug > 1) ? logger.json(ro) : ro.m))
     switch (ro.m) {
       case 'AppConnected':
-        if (ro.d.version !== api_version) {
-          logger.error('Sfinx: Invalid server API version v' + ro.d.version + ', must be v' + api_version)
+        if (ro.d.version !== sfinxAPIVersion) {
+          logger.error('Sfinx: Invalid server API version v' + ro.d.version + ', must be v' + sfinxAPIVersion)
           wss.close(4104, 'Invalid server API version')
         } else {
           wss.nonce = ro.d.nonce
@@ -279,9 +283,10 @@ export default {
         logger.warn('dispatch_default: Undispatched ' + logger.json(ro))
     }
   },
+  NEXT_ALLOWED_LOGIN_ATTEMPT_IN_SECONDS: 5,
   tooFastAuth() {
-    let t = (((new Date()).getTime() - authAttempted) / 1000)
-    if (t < 5) // do not allow login attempts in a less then 5 seconds
+    let t = (((new Date()).getTime() - authAttempted) / this._1_SECOND)
+    if (t < this.NEXT_ALLOWED_LOGIN_ATTEMPT_IN_SECONDS)
       return true
     authAttempted = (new Date()).getTime()
     return false

@@ -327,7 +327,7 @@ const documentColumns = [
     }
   },
   { name: 'ctime', align: 'center', label: 'Created', field: 'ctime', sortable: true, format: (val, row) => {
-      let d = new Date(val * 1000)
+      let d = new Date(val * sfinx._1_SECOND)
       return format(d, 'DD/MM/YY HH:mm:ss')
     }
   }

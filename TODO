@@ -1,11 +1,13 @@
 
 current:
 
+ - filter option to show documents in all lower slices
  - create beta server
 
 misc:
 
  - implement multiple documents slices editing (all must have the same slices only)
+	- ability to add new slice to all selected documents at once
  - switch note editor to https://github.com/flyween/vue3-quill
  - transact edit/delete operations in DB that consist of several steps
  - add div zoom by scroll/pan event to slices
@@ -33,4 +35,6 @@ next:
 - implement basic AI agents:
    - watcher
    - harvester
+- telegram:
+	 - export slice as channel
 
