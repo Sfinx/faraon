@@ -10,6 +10,7 @@
 let colors = {
   error: 'color:red; font-weight:bold',
   debug: 'color:blue',
+  debug2: 'color:tomato',
   warn: 'color:DarkGoldenRod; text-decoration:underline',
   data: 'color:grey',
   info: 'color:green',

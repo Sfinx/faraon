@@ -63,7 +63,7 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <search-slice :filter="documentsFilter" :selected="documentsSelected" style="width: 97%;height: 6%" class="q-ma-sm"/>
+        <search-slice ref="searchSliceRef" :filter="documentsFilter" :selected="documentsSelected" style="width: 97%;height: 6%" class="q-ma-sm"/>
         <q-input ref="documentsSearchRef" v-model="documentsSearchFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
           <q-icon v-if="documentsSearchFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsSearchFilter" />
         </q-input>
@@ -385,6 +385,7 @@ const sliceDescriptionRef = ref(null)
 const plotlyRef = ref(null)
 const documentsTableRef = ref(null)
 const documentsSearchRef = ref(null)
+const searchSliceRef = ref(null)
 
 const documentsSearchFilterDocs = (rows, fo, cols, getCellValue) => {
   let search = fo.search ? fo.search.toLowerCase() : ''
@@ -483,9 +484,7 @@ const newOrEditDocument = (type, edit, doc) => {
   if (documentsFilter.category != 'orphans' || !edit)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
   // remove reactivity from slices so no GetDocuments will be triggered
-  let slices = []
-  for (let s of document.slices)
-    slices.push(Object.assign({}, s))
+  let slices = document.slices.map(s => Object.assign({ }, s))
   let encrypted = document.encrypt ? encryptOptions[document.encrypt] : encryptOptions[0]
   if (!edit)
     Object.assign(newOrEditDocumentDialog, { on: true, hidden: true, type, edit, slices, encrypted })
@@ -612,14 +611,19 @@ function getSliceDefaults() {
 
 const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0
 
+function slicePresent(slice, a) {
+  for (let s of a.slices) {
+    if (s.id == slice.id)
+      return true
+  }
+  return false
+}
+
 const sliceSelected = slice => {
-  console.log('sliceSelected', slice)
   let name = slice.name ? slice.name : slice.label.substring(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
-  for (let s of newOrEditDocumentDialog.slices) {
-    if (s.id == slice.id)
-      return $q.enotify('Slice \'' + name + '\' already assigned')
-  }
+  if (slicePresent(newOrEditDocumentDialog, slice))
+    return $q.$enotify('Slice \'' + name + '\' already assigned')
   newOrEditDocumentDialog.slices.push({ name, id: slice.id })
   showSliceSelectionDialog.value = false
 }
@@ -888,7 +892,10 @@ const plotlyClick = e => {
   documentsSelected.value.length = 0
   if (keyModifier == 'Control') { // add slice to filter
     if (!$q.$store.movingSlice) {
-      documentsFilter.slices.push(currentHoveredSlice)
+      if (slicePresent(currentHoveredSlice, documentsFilter))
+        $q.$enotify('Slice \'' + currentHoveredSlice.name + '\' already present')
+      else
+        documentsFilter.slices.push(currentHoveredSlice)
       return false
     }
   } else if (keyModifier == 'Shift') {
@@ -905,8 +912,10 @@ const plotlyClick = e => {
       }, {
         newParent: { id: p.id }
       })
-    } else // no slice move
+    } else { // no slice move just slice select
         documentsFilter.slices = [currentHoveredSlice]
+        searchSliceRef.value.clear()
+    }
     return false
   } else { // usual click
       // logger.trace('click: selectedSliceId: ' + selectedSliceId + ', dataRoot: ' + dataRoot + ', currentHoveredSlice: ' + logger.json(currentHoveredSlice))

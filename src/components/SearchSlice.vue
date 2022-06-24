@@ -93,9 +93,15 @@ const slicesSearchFilterFn = (value, update) => {
   }, value)
 }
 
+const clear = () => slicesSearch.value = ''
+
 onMounted(() => {
   if (props?.filter?.slices)
     props.filter.slices = [{ name: 'Dao', id: '1' }]
+})
+
+defineExpose({
+  clear
 })
 
 </script>

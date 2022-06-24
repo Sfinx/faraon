@@ -234,14 +234,7 @@ export default {
     if (this.slicePathCache[s.id])
       return this.slicePathCache[s.id]
     let r = await this.sendMsgPromise('GetSlicePath', s.id)
-    let path = ''
-    for (let p of r) {
-      if (path != '')
-        path += ' / '
-      path += p
-    }
-    this.slicePathCache[s.id] = path
-    return path
+    return this.slicePathCache[s.id] = r.join(' / ')
   },
   async buildSlicePaths(slices) {
     let res = [], tobuild = []
@@ -255,13 +248,7 @@ export default {
       return res
     let r = await this.sendMsgPromise('GetSlicesPath', tobuild)
     for (let s of r) {
-      let path = ''
-      for (let p of s.path) {
-        if (path != '')
-          path += ' / '
-        path += p
-      }
-      this.slicePathCache[s.id] = path
+      this.slicePathCache[s.id] = r.join(' / ')
       res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
     }
     return res
@@ -368,7 +355,7 @@ export default {
         if (cb)
           dispatch[uuid] = cb
         if (app.parameters.debug && ((msg !== 'Ping') || (app.parameters.debug > 2)))
-          logger.debug('Sfinx: send_msg: ' + ((app.parameters.debug > 1) ? logger.json(so) : msg))
+          logger.debug2('Sfinx: send_msg: ' + ((app.parameters.debug > 1) ? logger.json(so) : msg))
         wss.send(JSON.stringify(so))
       } catch (e) {
           logger.error('Sfinx: ws error in send_message: ' + (e.message ? (e.message + e.stack) : logger.json(e)))
