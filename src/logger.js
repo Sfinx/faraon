@@ -10,7 +10,8 @@
 let colors = {
   error: 'color:red; font-weight:bold',
   debug: 'color:blue',
-  debug2: 'color:tomato',
+  rx: 'color:tomato; font-weight:bold',
+  tx: 'color:seagreen; font-weight:bold',
   warn: 'color:DarkGoldenRod; text-decoration:underline',
   data: 'color:grey',
   info: 'color:green',

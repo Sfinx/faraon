@@ -93,7 +93,7 @@ const slicesSearchFilterFn = (value, update) => {
   }, value)
 }
 
-const clear = () => slicesSearch.value = ''
+const clear = () => slicesSearchInput.value = slicesSearch.value = ''
 
 onMounted(() => {
   if (props?.filter?.slices)

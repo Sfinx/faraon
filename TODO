@@ -1,7 +1,6 @@
 
 current:
 
- - remove GetSlicesPath
  - create beta server
 
 misc:

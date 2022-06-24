@@ -233,8 +233,8 @@ export default {
   async showFullSlicePath(s) {
     if (this.slicePathCache[s.id])
       return this.slicePathCache[s.id]
-    let r = await this.sendMsgPromise('GetSlicePath', s.id)
-    return this.slicePathCache[s.id] = r.join(' / ')
+    let r = await this.sendMsgPromise('GetSlicesPath', [s.id])
+    return this.slicePathCache[s.id] = r[0].path.join(' / ')
   },
   async buildSlicePaths(slices) {
     let res = [], tobuild = []
@@ -242,20 +242,18 @@ export default {
       if (this.slicePathCache[s.id])
         res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
       else
-        tobuild.push(s)
+        tobuild.push(s.id)
     }
     if (!tobuild.length)
       return res
     let r = await this.sendMsgPromise('GetSlicesPath', tobuild)
-    for (let s of r) {
-      this.slicePathCache[s.id] = r.join(' / ')
+    r.map(s => {
+      this.slicePathCache[s.id] = s.path.join(' / ')
       res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
-    }
+    })
     return res
   },
   dispatch_default(ro) {
-    if (app.parameters.debug)
-     logger.debug('Sfinx: Default message dispatch, msg: ' + ((app.parameters.debug > 1) ? logger.json(ro) : ro.m))
     switch (ro.m) {
       case 'AppConnected':
         if (ro.d.version !== sfinxAPIVersion) {
@@ -355,7 +353,7 @@ export default {
         if (cb)
           dispatch[uuid] = cb
         if (app.parameters.debug && ((msg !== 'Ping') || (app.parameters.debug > 2)))
-          logger.debug2('Sfinx: send_msg: ' + ((app.parameters.debug > 1) ? logger.json(so) : msg))
+          logger.tx('=> ' + ((app.parameters.debug > 1) ? logger.json(so) : msg))
         wss.send(JSON.stringify(so))
       } catch (e) {
           logger.error('Sfinx: ws error in send_message: ' + (e.message ? (e.message + e.stack) : logger.json(e)))
@@ -373,14 +371,16 @@ export default {
           logger.error('Sfinx: closing: Invalid message: ' + e.data)
         wss.close(4103, 'Invalid message')
       } else {
-          if (ro.m === 'Ping') {
-            return
+          if (app.parameters.debug) {
+            if (app.parameters.debug < 2 && ro.m === 'Ping')
+              return
+            logger.rx('<= ' + ((app.parameters.debug > 1) ? logger.json(ro) : ro.m))
           }
+          if (ro.m === 'Ping')
+            return
           if (!(ro.u in dispatch))
-           this. dispatch_default(ro)
+           this.dispatch_default(ro)
           else {
-            if (app.parameters.debug)
-              logger.debug('Sfinx: Dispatching msg: ' + ((app.parameters.debug > 1) ? logger.json(ro) : ro.m))
             // if (!ro.e) {
             //   // update store state
             //   switch (ro.m) {
