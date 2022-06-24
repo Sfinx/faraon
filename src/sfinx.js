@@ -14,8 +14,9 @@ let authAttempted
 let sfinxAPIVersion = '0.0.2'
 let endpoint = 'wss://' + location.hostname + '/sfinx/' + sfinxAPIVersion
 
+export const _1_SECOND = 1000
+
 export default {
-  _1_SECOND: 1000,
   $q: null,
   async passPrompt(title, message, type) {
     let pass = await this.prompt(title, message, type)
@@ -177,12 +178,12 @@ export default {
     })
   },
   async uploadFile(file, cb) {
-    // if (file.size > 100 * 1024 * 1024)
-    //   return cb('Too big file (> 100Mb)')
+    if (file.size > 100 * 1024 * 1024)
+      return cb('Too big file (> 100Mb)')
     this.$q.loading.show({ message: 'Calculating ' + file.name + ' csum..' })
     let csum = await this.csum(file, 'SHA-256')
     this.$q.loading.hide()
-    let now = () => (new Date().getTime()) / this._1_SECOND
+    let now = () => (new Date().getTime()) / _1_SECOND
     let started = now()
     let headers = { user: store.loggedUser.footer, authToken: store.authToken, name: file.name, type: file.type, csum }
     let upload = new tus.Upload(file, {
@@ -285,7 +286,7 @@ export default {
   },
   NEXT_ALLOWED_LOGIN_ATTEMPT_IN_SECONDS: 5,
   tooFastAuth() {
-    let t = (((new Date()).getTime() - authAttempted) / this._1_SECOND)
+    let t = (((new Date()).getTime() - authAttempted) / _1_SECOND)
     if (t < this.NEXT_ALLOWED_LOGIN_ATTEMPT_IN_SECONDS)
       return true
     authAttempted = (new Date()).getTime()

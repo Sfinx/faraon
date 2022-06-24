@@ -105,15 +105,17 @@
               <q-list style="min-width: 120px">
                 <q-item>
                   <div class="column">
-                    <q-toggle v-close-popup v-model="documentsSelect.all" @click="documentsTypeSelect" label="All Documents"/>
-                    <q-toggle v-close-popup v-model="documentsSelect.orphans" @click="documentsTypeSelect" label="Orphans only"/>
+                    <q-radio v-close-popup v-model="documentsFilter.category" val="all" label="All Documents" />
+                    <q-radio v-close-popup v-model="documentsFilter.category" val="orphans" label="Orphans only" />
+                    <q-radio v-close-popup v-model="documentsFilter.category" val="recursively" label="Recursively" />
+                    <q-radio v-close-popup v-model="documentsFilter.category" val="inslice" label="In slice" />
                     <q-separator/>
                     <q-btn-dropdown unelevated dense flat label="By Type">
                       <q-list style="min-width: 120px">
                         <q-item>
                           <div class="column" >
-                            <q-toggle v-for="docType in documentTypes.slice().reverse()" v-model="documentsSelect.types[docType.toLowerCase()]" @click="documentsTypeSelect" :label="docType"/>
-                            <q-item v-close-popup style="user-select: none;" @click="documentsAllTypes" clickable>All types</q-item>
+                            <q-toggle v-for="docType in documentTypes.slice().reverse()" v-model="documentsFilter.types[docType.toLowerCase()]" :label="docType"/>
+                            <q-item v-close-popup style="user-select: none;" @click="documentsFilter.types.fill(false)" clickable>All types</q-item>
                           </div>
                         </q-item>
                       </q-list>
@@ -146,9 +148,9 @@
           <q-toolbar-title>Select Slice</q-toolbar-title>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-toolbar>
-        <q-card-actions class="q-ma-md row">
+        <q-card-actions class="q-ma-sm row">
           <q-btn class="bg-secondary text-white" glossy label="Return to Dao" @click="selectSliceRef.toDao()"/>
-          <search-slice @selected="sliceSelected" style="width: 79%;height: 6%" class="q-ml-md"/>
+          <search-slice @selected="sliceSelected" style="width: 79%;height: 6%" class="q-ml-sm"/>
         </q-card-actions>
         <q-card-section class="col items-center">
           <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected"/>
@@ -287,7 +289,7 @@
 <script setup>
 
 import { ref, reactive, onMounted, onUnmounted, computed, watch, resolveComponent } from 'vue'
-import sfinx from '@/sfinx'
+import sfinx, {_1_SECOND } from '@/sfinx'
 import { useQuasar } from 'quasar'
 import logger from '@/logger'
 import plotly from 'components/Plotly.vue'
@@ -327,7 +329,7 @@ const documentColumns = [
     }
   },
   { name: 'ctime', align: 'center', label: 'Created', field: 'ctime', sortable: true, format: (val, row) => {
-      let d = new Date(val * sfinx._1_SECOND)
+      let d = new Date(val * _1_SECOND)
       return format(d, 'DD/MM/YY HH:mm:ss')
     }
   }
@@ -349,6 +351,17 @@ const documentsSelected = ref([])
 const menuSlice = reactive(getSliceDefaults())
 let viewDocumentDialog = reactive({ on: false, document: null, hidden: true })
 let documentsSearchFilter = reactive({ search: '' })
+
+const getdocumentsFilterDefaults = () => {
+  return {
+    category: 'inslice',
+    types: Object.fromEntries(documentTypes.map(v => [v.toLocaleLowerCase(), false])),
+    slices: [{ name: 'Dao', id: '1' }]
+  }
+}
+
+let documentsFilter = reactive(getdocumentsFilterDefaults())
+
 const encryptOptions = [
   {
     label: 'None',
@@ -460,10 +473,14 @@ const editDocument = (doc) => {
   newOrEditDocument(sfinx.getFullDocumentType(doc), true, doc)
 }
 
-const newOrEditDocument = (type, edit, document) => {
+const newOrEditDocument = (type, edit, doc) => {
+  let menuSlices = [{ id: menuSlice.id, name: menuSlice.name  }]
+  if (!doc)
+    documentsFilter.slices = menuSlices
+  let document = doc ?? { slices: menuSlices }
   let inSlices = getSlicesNames(document)
-  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.orphans ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
-  if (!documentsFilter.orphans || !edit)
+  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.category == 'orphans' ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
+  if (documentsFilter.category != 'orphans' || !edit)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
   // remove reactivity from slices so no GetDocuments will be triggered
   let slices = []
@@ -596,6 +613,7 @@ function getSliceDefaults() {
 const newOrEditDocumentClearSlices = () => newOrEditDocumentDialog.slices.length = 0
 
 const sliceSelected = slice => {
+  console.log('sliceSelected', slice)
   let name = slice.name ? slice.name : slice.label.substring(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
   for (let s of newOrEditDocumentDialog.slices) {
@@ -624,68 +642,9 @@ const onResize = () => {
     selectSliceRef.value.resize()
 }
 
-const getdocumentsFilterDefaults = () => {
-  return {
-    orphans: false,
-    all: false,
-    types: [],
-    slices: [{ name: 'Dao', id: '1' }]
-    }
-}
-
-let documentsFilter = reactive(getdocumentsFilterDefaults())
-
-const documentsSelect = reactive({
-  all: false,
-  orphans: false,
-  types: {
-    note: false,
-    file: false,
-    event: false,
-    person: false,
-    knowhow: false,
-    todo: false,
-    aim: false
-  }
-})
-
-// click event
-const documentsTypeSelect = () => {
-  setTimeout(() => {
-    let types = []
-    for (const [key, value] of Object.entries(documentsSelect.types)) {
-      if (value == true)
-        types.push(key)
-    }
-    Object.assign(documentsFilter, documentsFilter, { all: documentsSelect.all, orphans: documentsSelect.orphans, types })
-  }, 10)
-}
-
-watch(() => ({ ...documentsSelect }), (d, dprev) => {
-  documentsSelected.value.length = 0
-  if (d.all && !dprev.all)
-    return Object.assign(documentsSelect, documentsSelect, {all : true, orphans: false })
-  if (d.orphans && !dprev.orphans)
-    return Object.assign(documentsSelect, documentsSelect, {all : false, orphans: true })
-})
-
-const documentsAllTypes = () => {
-  let types = {}
-  let assign = false
-  for (const [key, value] of Object.entries(documentsSelect.types)) {
-    if (value)
-      assign = true
-    types[key] = false
-  }
-  if (assign) {
-    Object.assign(documentsSelect, documentsSelect, { types })
-    documentsTypeSelect()
-  }
-}
-
 watch(documentsFilter, n => refreshDocuments())
 
-watch(() => documentsSearchFilter.search, n => documentsSelected.value.length = 0)
+watch(() => documentsSearchFilter.search, n => documentsSelected.value.length = 0) // unselect docs if we are changing filter
 
 watch(showMenu, shown => {
   if (!shown)
@@ -703,7 +662,8 @@ watch(showMenu, shown => {
   menuSlice.name = (currentHoveredSlice.id == 1) ? null : currentHoveredSlice.name
 })
 
-const documentsTitle = computed(() => documentsFilter.all ? 'All Documents' : (documentsFilter.orphans ? 'Orphan Documents' : ('Documents in [' + getSlicesNames(documentsFilter) + ']')))
+const documentsTitle = computed(() => documentsFilter.category == 'all' ? 'All Documents' : (documentsFilter.category == 'orphans' ? 'Orphan Documents' : ('Documents ' + (documentsFilter.category == 'recursively' ? 'recursively ' : '') +
+  'in [' + getSlicesNames(documentsFilter) + ']')))
 
 const getSlicesNames = d => {
   let label = d.slices.length ? '' : 'Dao'
@@ -882,12 +842,15 @@ const setRootSlice = root => {
 
 const refreshDocuments = () => {
   // logger.trace('refreshDocuments: ' + logger.json(documentsFilter.slices))
-  let filter = Object.assign({}, documentsFilter)
-  filter.slices = []
-  for (let s of documentsFilter.slices)
-    filter.slices.push({ id: s.id })
-  if (!filter.slices.length && slicesSearch.value.length)
-    return documentRows.value = []
+  let filter = { category: documentsFilter.category }
+  filter.slices = documentsFilter.slices.map(s => ({ id: s.id }))
+  filter.types = []
+  for (const [k, v] of Object.entries(documentsFilter.types)) {
+    if (v)
+      filter.types.push(k)
+  }
+  // if (!filter.slices.length && slicesSearch.value.length)
+  //   return documentRows.value = []
   sfinx.sendMsg('GetDocuments', async res => {
     if (res.e)
       $q.$enotify(res.e)

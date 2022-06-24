@@ -1,7 +1,7 @@
 
 current:
 
- - filter option to show documents in all lower slices
+ - remove GetSlicesPath
  - create beta server
 
 misc:

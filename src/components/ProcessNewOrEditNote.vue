@@ -92,7 +92,6 @@
 <script setup>
 
 import logger from '@/logger'
-import sfinx from '@/sfinx'
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 

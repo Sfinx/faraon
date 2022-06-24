@@ -110,17 +110,17 @@ const select = e => {
   if (!p)
     return true
   if (keyModifier == 'Shift')
-    return props.selected(p[0])
+    return props.selected(p)
   else {
-    // console.log('click: selectedSliceId: ', p, ', dataRoot: ', dataRoot)
-    selectedSliceId =  p[0].id
+    selectedSliceId =  p.id
+    // console.log('SelectSlice:click: ', p, ', dataRoot: ', dataRoot, ', selectedSliceId: ', selectedSliceId)
     if (selectedSliceId != '1') {
       if (selectedSliceId == dataRoot) { // back to parent
-        // logger.trace('Back to parent: ' + p[0].customdata.parent)
-        refresh(p[0].customdata.parent)
+        // logger.trace('Back to parent: ' + p.customdata.parent)
+        refresh(p.customdata.parent)
         return false
       }
-      if (p[0].customdata.out_count) { // move forward by DB
+      if (p.customdata.out_count) { // move forward by DB
         // logger.trace('Move forward')
         refresh()
         return false

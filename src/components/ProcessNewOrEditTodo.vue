@@ -25,10 +25,7 @@
 
 import logger from '@/logger'
 import { ref, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
 import draggable from 'vuedraggable'
-
-const $q = useQuasar()
 
 const todoNameRef = ref(null)
 const todoDescriptionRef = ref(null)

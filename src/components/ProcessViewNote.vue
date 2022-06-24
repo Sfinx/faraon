@@ -14,8 +14,6 @@
 
 <script setup>
 
-import sfinx from '@/sfinx'
-
 const props = defineProps({
   data: {
     type: Object
