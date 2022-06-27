@@ -65,6 +65,7 @@ const startUpload = async () => {
         props.data.document.data.uploaded.name = upload.value.url.substring(upload.value.url.lastIndexOf('/') + 1)
         close()
       }
+      props.data.document.data.csum = file.value.csum
       emit('done', props.data.document)
     }
   })
@@ -101,9 +102,15 @@ const emit = defineEmits(['done'])
 let uploadDialog
 
 
-const process = () => {
+const process = async () => {
   // logger.trace('newOrEditFile: process: ' + logger.json(file))
   if (props.data.document.data.uploaded.on && file.value && fileChanged) {
+    $q.loading.show({ message: 'Calculating ' + file.value.name + ' csum..' })
+    file.value.csum = await sfinx.csum(file.value, 'SHA-256')
+    let r = await sfinx.sendMsgPromise('CheckFilePresense', file.value.csum)
+    $q.loading.hide()
+    if (r.length)
+      return $q.$enotify('Such file hash already present in database')
     uploadDialog = $q.dialog({
       component: Progress,
       componentProps: {

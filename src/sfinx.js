@@ -178,14 +178,11 @@ export default {
     })
   },
   async uploadFile(file, cb) {
-    if (file.size > 100 * 1024 * 1024)
-      return cb('Too big file (> 100Mb)')
-    this.$q.loading.show({ message: 'Calculating ' + file.name + ' csum..' })
-    let csum = await this.csum(file, 'SHA-256')
-    this.$q.loading.hide()
+    // if (file.size > 100 * 1024 * 1024)
+    //   return cb('Too big file (> 100Mb)')
     let now = () => (new Date().getTime()) / _1_SECOND
     let started = now()
-    let headers = { user: store.loggedUser.footer, authToken: store.authToken, name: file.name, type: file.type, csum }
+    let headers = { user: store.loggedUser.footer, authToken: store.authToken, name: file.name, type: file.type, csum: file.csum }
     let upload = new tus.Upload(file, {
       endpoint: 'https://' + location.hostname + '/uploads/',
       headers,

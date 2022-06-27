@@ -622,7 +622,7 @@ function slicePresent(slice, a) {
 const sliceSelected = slice => {
   let name = slice.name ? slice.name : slice.label.substring(0, slice.label.lastIndexOf(sfinx.sliceSeparator))
   // no sense to have several instances of the same slice
-  if (slicePresent(newOrEditDocumentDialog, slice))
+  if (slicePresent(slice, newOrEditDocumentDialog))
     return $q.$enotify('Slice \'' + name + '\' already assigned')
   newOrEditDocumentDialog.slices.push({ name, id: slice.id })
   showSliceSelectionDialog.value = false
