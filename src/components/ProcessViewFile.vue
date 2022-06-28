@@ -1,6 +1,6 @@
 
 <template>
-  <!-- <q-card-section style="min-width: 70vh;"> -->
+  <q-card-section style="max-height: 66vh;">
     <q-field label="Name" stack-label outlined dense class="q-mb-sm">
       <div class="self-center full-width no-outline" tabindex="0">{{ props.data.name }}</div>
     </q-field>
@@ -8,8 +8,8 @@
       <div class="self-center no-outline" tabindex="0">{{ props.data.description }}</div>
     </q-field>
     <embed ref="fileRef" :type="props.data.mime" style="width: 100%; height: 100%">
-    <q-btn dense class="bg-secondary text-white" glossy label="FullScreen" @click="fullscreen()"/>
-  <!-- </q-card-section> -->
+  </q-card-section>
+  <q-btn dense class="bg-secondary text-white q-mb-xs q-mt-sm" glossy label="FullScreen" @click="fullscreen()"/>
 </template>
 
 <script setup>

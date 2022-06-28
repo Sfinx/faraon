@@ -218,7 +218,7 @@
             <process-document :type="viewDocumentDialog.document.type" op="View" :data="viewDocumentDialog.document.data" @update="viewDocumentUpdate"
               @error="e => { $q.$enotify('ViewDocument Error: ' + e); viewDocumentDialog.on = false }" @ready="viewDocumentDialog.hidden = false"/>
         </q-card-section>
-        <q-card-section class="dense">
+        <q-card-section class="dense" style="padding: 3px">
           <q-select
             filled
             v-model="viewDocumentDialog.document.slices"
@@ -227,7 +227,7 @@
             use-chips
             stack-label
             label="Slices"
-            class="outline rounded-borders"
+            class="outline rounded-borders q-mx-sm"
             style="user-select: none; outline-width: thin"
           >
             <template v-slot:selected-item="scope">
@@ -288,16 +288,18 @@
 
 <script setup>
 
-import { ref, reactive, onMounted, onUnmounted, computed, watch, resolveComponent } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch, defineAsyncComponent } from 'vue'
 import sfinx, {_1_SECOND } from '@/sfinx'
 import { useQuasar } from 'quasar'
 import logger from '@/logger'
-import plotly from 'components/Plotly.vue'
-import selectSlice from 'components/SelectSlice.vue'
-import searchSlice from 'components/SearchSlice.vue'
-import ProcessDocument from 'components/ProcessDocument.vue'
 import emitter from 'tiny-emitter/instance'
 import { format } from 'fecha'
+
+// components
+const Plotly = defineAsyncComponent(() => import('components/Plotly.vue'))
+const SelectSlice = defineAsyncComponent(() => import('components/SelectSlice.vue'))
+const SearchSlice = defineAsyncComponent(() => import('components/SearchSlice.vue'))
+const ProcessDocument = defineAsyncComponent(() => import('components/ProcessDocument.vue'))
 
 const $q = useQuasar()
 

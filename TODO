@@ -1,7 +1,6 @@
 
 current:
 
- - websocket compression
  - create beta server
 
 misc:

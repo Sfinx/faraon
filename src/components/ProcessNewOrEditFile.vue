@@ -5,7 +5,7 @@
     <q-input v-model="props.data.document.data.description" outlined label-color="black" label="File Description" ref="fileDescriptionRef"/>
     <div class="row justify-between">
       <q-file v-if="props.data.document.data.uploaded.on" style="width: 40%" class="q-mt-sm" outlined v-model="file" label="Select File" />
-      <q-input style="width: 40%" class="q-mt-sm" v-if="!props.data.document.data.uploaded.on" v-model="props.data.document.data.url" outlined label-color="black" label="File Path / URL"/>
+      <q-input style="width: 40%" class="q-mt-sm" v-else v-model="props.data.document.data.url" outlined label-color="black" label="File Path / URL"/>
       <q-input style="width: 40%" class="q-mt-sm" v-model="props.data.document.data.mime" outlined label-color="black" label="File Type">
         <q-tooltip anchor="top right" :offset="[30, 30]" >{{ sfinx.getFileTypeCategory(props.data.document.data.mime) }}</q-tooltip>
       </q-input>
@@ -17,10 +17,10 @@
 <script setup>
 
 import logger from '@/logger'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, defineAsyncComponent } from 'vue'
 import { useQuasar } from 'quasar'
 import sfinx from '@/sfinx'
-import Progress from '@/components/Progress.vue'
+const Progress = defineAsyncComponent(() => import('@/components/Progress.vue'))
 
 const $q = useQuasar()
 
