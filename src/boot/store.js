@@ -1,5 +1,4 @@
 
-import logger from '../logger'
 import { boot } from 'quasar/wrappers'
 import { reactive } from 'vue'
 

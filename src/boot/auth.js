@@ -1,6 +1,5 @@
 import { boot } from 'quasar/wrappers'
 import { store as _store } from '@/boot/store'
-import logger from '../logger'
 
 export default boot(({app, router}) => {
   router.beforeEach((to, from, next) => {

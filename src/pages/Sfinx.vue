@@ -153,7 +153,7 @@
           <search-slice @selected="sliceSelected" style="width: 79%;height: 6%" class="q-ml-sm"/>
         </q-card-actions>
         <q-card-section class="col items-center">
-          <selectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected"/>
+          <SelectSlice ref="selectSliceRef" :layout="selectSliceLayout" :maxDepth="maxDepth"  :selected="sliceSelected"/>
         </q-card-section>
       </q-card>
     </q-dialog>

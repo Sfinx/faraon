@@ -7,11 +7,12 @@
       </q-toolbar>
       <div class="q-px-md q-pb-md">
         <h6>
-        <p>Slice selection is performed with holding Shift & click</p>
-        <p>Add new slice to selection is performed with holding Ctrl & click</p>
+        <p>Digit after vertical mark in slice browser show the total slices in lower hierarchy as default shown slices depth is 3 but total hierarchy depth is unlimited</p>
+        <p>Selecting slice in document browser is performed with holding Shift & click in slice browser</p>
+        <p>Add new slice to selection in document browser is performed with holding Ctrl & click in slice browser</p>
         <p>Double click in documents browser to view the document</p>
         <p>ToDo's items are draggable in edit mode</p>
-        <p>To receive telgram notifications:
+        <p>To receive telegram notifications:
           <ul>
             <li>Find in telegram @botfather</li>
             <li>Issue command /newbot</li>
@@ -25,7 +26,8 @@
           </ul>
         </p>
         <p>When slice is trimmed then all its child slices moved to its parent. The slice will be removed from the list of slices for documents that had this slice in the slices list</p>
-        <p>When slice is removed recursevly then all the child slices will be removed too. The slice will be removed from the list of slices for documents that had this slice in the slices list</p>
+        <p>When slice is removed recursevly then all the child slices will be removed too. The slice will be removed from the list of slices for documents that had this slice in the slices list.
+          Part of document can became orphaned is deleted slice was the only slice the document belong to</p>
       </h6>
       </div>
     </q-card>
