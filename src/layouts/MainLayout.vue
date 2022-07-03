@@ -273,14 +273,16 @@ const login = () => {
 
 const showLogin = () => {
   isPwd.value = true
-  user.value = 'rus'
-  pass.value = 'pass'
+  if (process.env.NODE_ENV == 'development') {
+    user.value = 'rus'
+    pass.value = 'pass'
+    setTimeout(login, 100)
+  } else {
+      user.value = ''
+      pass.value = ''
+  }
   setTimeout(() => { loginUserRef.value.focus() }, 20)
   showLoginDlg.value = true
-  // debug
-  setTimeout(() => {
-    login()
-  }, 100)
 }
 
 const connected = res => {

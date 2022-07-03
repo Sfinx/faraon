@@ -861,7 +861,7 @@ const refreshDocuments = () => {
     if (res.e)
       $q.$enotify(res.e)
     else {
-      $q.$store.total_documents = res.d.length
+      $q.$store.inslices_documents = res.d.length
       for (let d of res.d) {
         d.encrypt = 0
         if (d.data.ciphertext) {

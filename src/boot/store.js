@@ -6,6 +6,7 @@ const storeObj = {
  loggedUser: null,
  total_slices: 0,
  total_documents: 0,
+ inslices_document: 0,
  movingSlice: null,
  authToken: null
 }
