@@ -37,6 +37,8 @@ const fullscreen = () => {
   })
 }
 
+/*const emit =*/ defineEmits(['error'])
+
 onMounted(async () => {
   let url = 'https://' + location.hostname + '/files/' + $q.$store.loggedUser.footer + '/' + props.data.uploaded.name
   if (props.data.uploaded.on == true && sfinx.getFileTypeCategory(props.data.mime) != 'other') {
@@ -65,11 +67,9 @@ onMounted(async () => {
       Loading.hide()
       fileRef.value.src = URL.createObjectURL(blob)
     } else
-        $q.$enotify('View File: Fetch error: ' + response.status)
+        emit('error', 'View File: Fetch error: ' + response.status)
   }
 })
-
-defineEmits(['update'])
 
 </script>
 

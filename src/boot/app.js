@@ -3,7 +3,7 @@ import pjson from '@/../package.json'
 import bjson from '@/../build.json'
 import logger from '@/logger'
 import { boot } from 'quasar/wrappers'
-import { useQuasar } from 'quasar'
+import { Dialog } from 'quasar'
 
 const app = createApp()
 
@@ -34,11 +34,10 @@ export default boot(({ app: a }) => {
   a.config.errorHandler = e => {
     let m = e.toString() + ': ' + e.stack
     logger.error(m)
-    const $q = useQuasar()
-    $q.dialog({
+    Dialog.create({
       title: 'Sfinx Exception',
       color: 'red',
-      fullWidth: true,
+      fullWidth: true, // not ideal
       ok: {
         color: 'secondary',
         glossy: true

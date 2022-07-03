@@ -1,6 +1,6 @@
 
 <template>
-  <component ref="processDocumentRef" :is="component" :data="documentData" v-if="component"/>
+  <component ref="processDocumentRef" @error="e => emit('error', e)" :is="component" :data="documentData" v-if="component"/>
 </template>
 
 <script setup>

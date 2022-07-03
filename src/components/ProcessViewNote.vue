@@ -18,8 +18,6 @@ const props = defineProps({
   }
 })
 
-defineEmits(['update'])
-
 </script>
 
 <style scoped>
