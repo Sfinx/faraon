@@ -38,7 +38,7 @@ const fullscreen = () => {
 }
 
 onMounted(async () => {
-  let url = 'https://dev.sfinx.in/files/' + $q.$store.loggedUser.footer + '/' + props.data.uploaded.name
+  let url = 'https://' + location.hostname + '/files/' + $q.$store.loggedUser.footer + '/' + props.data.uploaded.name
   if (props.data.uploaded.on == true && sfinx.getFileTypeCategory(props.data.mime) != 'other') {
     let response = await fetch(url, {
       headers: {

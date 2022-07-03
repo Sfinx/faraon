@@ -1,4 +1,5 @@
-
+DEPLOY_HOST := root@c
+DEPLOY_DIR := sfinx/back/cluster/nginx
 BUILD_TIMESTAMP := $(shell date +"%Y-%m-%d %H:%M:%S")
 COMMIT_ID := $(shell git describe --abbrev=24 --always)
 
@@ -8,6 +9,11 @@ bson:
 		 \"buildStamp\": \"${BUILD_TIMESTAMP}\"\n\
 	}" > build.json
 
+deploy:
+	@ssh $(DEPLOY_HOST) rm -rf $(DEPLOY_DIR)/dist
+	@scp -qr dist $(DEPLOY_HOST):$(DEPLOY_DIR)
+	@ssh $(DEPLOY_HOST) bash -c "date > $(DEPLOY_DIR)/marker"
+
 u upgrade:
 	@ncu -u
 	@pnpm install
@@ -15,6 +21,10 @@ u upgrade:
 
 b build: bson upgrade
 	@quasar build
+	@echo Compressing..
+	@cd dist/spa; brotli -q 11 *html *ico *png assets/*
+	@cd dist/spa; gzip -q9 *html *ico *png
+	@cd dist/spa/assets; gzip -q9 *js *css *woff *ttf
 
 d dev:	bson
 	@quasar dev
