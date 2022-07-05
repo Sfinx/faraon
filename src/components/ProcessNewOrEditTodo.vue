@@ -9,7 +9,7 @@
           <div class="q-my-md column">
             <div class="row">
               <q-checkbox v-model="element.done"/>
-              <q-input v-model="element.name" dense outlined style="width: 35vw; height: 10px !important" :ref="getLastItemRef(index)" :label="'Item ' + index" label-color="black"/>
+              <q-input v-model="element.name" dense outlined style="width: 35vw; height: 10px !important" :ref="itemsRef[index]" :label="'Item ' + index" label-color="black"/>
               <q-icon name="mdi-close" size="19px" class="rounded q-ml-sm q-mt-sm glossy shadow bg-red text-white" @click="removeItem(index)"/>
             </div>
           </div>
@@ -31,9 +31,7 @@ const todoNameRef = ref(null)
 const todoDescriptionRef = ref(null)
 const scrollRef = ref(null)
 const shown = ref(false)
-const lastItemRef = ref(null)
-
-const getLastItemRef = idx => (idx + 1) == props.data.document.data.items.length ? lastItemRef : undefined
+let itemsRef = []
 
 const props = defineProps({
   data: {
@@ -50,16 +48,22 @@ const getDefaults = () => {
   }
 }
 
-const removeItem = (idx) => props.data.document.data.items.splice(idx, 1)
+const removeItem = (idx) => {
+  props.data.document.data.items.splice(idx, 1)
+  itemsRef.splice(idx, 1)
+  if (itemsRef.length)
+    setTimeout(() => itemsRef[props.data.document.data.items.length - 1].value.focus(), 10)
+}
 
 const newItem = () => {
   let item = {
     name: '',
     done: false
   }
+  itemsRef.push(ref(null))
   props.data.document.data.items.push(item)
   setTimeout(() => scrollRef.value.setScrollPercentage('vertical', 1.0), 10)
-  setTimeout(() => lastItemRef.value?.focus(), 10)
+  setTimeout(() => itemsRef[itemsRef.length - 1].value.focus(), 10)
 }
 
 onMounted(() => {
