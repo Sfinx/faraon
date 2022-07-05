@@ -26,6 +26,7 @@ misc:
  - connect ebook reader and save reading history in DB (pages, annotations, etc.) for PDF/EPUB/DJVU/TXT formats
  - implement file content encryption upon upload
  - ability to import files from local directory (electron or app or chrome extension)
+ - ability to work with several documents at once (q-window ?)
 
 next:
 

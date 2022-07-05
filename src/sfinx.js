@@ -18,6 +18,7 @@ export const _1_SECOND = 1000
 
 export default {
   $q: null,
+  isDev: (process.env.NODE_ENV == 'development'),
   async passPrompt(title, message, type) {
     let pass = await this.prompt(title, message, type)
     if (pass.length < 8)

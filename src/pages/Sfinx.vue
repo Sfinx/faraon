@@ -517,6 +517,7 @@ const newOrEditDocumentDone = async (doc) => {
     refreshDocuments()
     documentsSelected.value = []
     newOrEditDocumentDialog.on = false
+    $q.$store.total_documents++
   }
   if (newOrEditDocumentDialog.edit) {
     sfinx.sendMsg('EditDocument', res => {

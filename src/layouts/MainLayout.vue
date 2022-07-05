@@ -144,13 +144,15 @@
 import { ref, onMounted, watch, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import sfinx from '@/sfinx'
-import { useQuasar } from 'quasar'
+import { useQuasar, useMeta } from 'quasar'
 import logger from '@/logger'
 import { app } from '@/boot/app.js'
 import emitter from 'tiny-emitter/instance'
 
 const router = useRouter()
 const $q = useQuasar()
+
+const $meta = useMeta({ title: 'Faraon' + (sfinx.isDev ? ' [Dev]' : '') })
 
 const loginUserRef = ref(null)
 const loginPassRef = ref(null)
@@ -163,6 +165,7 @@ const debugKey = ref(null)
 const user = ref('')
 const pass = ref('')
 let sid
+
 
 let profileDialog = reactive({
   telegramToken: '',
@@ -273,7 +276,7 @@ const login = () => {
 
 const showLogin = () => {
   isPwd.value = true
-  if (process.env.NODE_ENV == 'development') {
+  if (sfinx.isDev) {
     user.value = 'rus'
     pass.value = 'pass'
     setTimeout(login, 100)
