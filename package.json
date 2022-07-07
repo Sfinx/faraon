@@ -16,7 +16,7 @@
     "jose": "^4.8.3",
     "pbkdf2": "^3.1.2",
     "plotly.js": "^2.12.1",
-    "quasar": "^2.7.4",
+    "quasar": "^2.7.5",
     "tiny-emitter": "^2.1.0",
     "tus-js-client": "3.0.0-0",
     "tweetnacl": "^1.0.3",
@@ -24,16 +24,16 @@
     "uuid": "^8.3.2",
     "vue": "^3.2.37",
     "vue-resize-directive": "^1.2.0",
-    "vue-router": "^4.0.16",
+    "vue-router": "^4.1.1",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
-    "@quasar/app-vite": "^1.0.4",
+    "@quasar/app-vite": "^1.0.5",
     "autoprefixer": "^10.4.7",
     "postcss": "^8.4.14",
     "rollup": "^2.75.7",
-    "serve": "^13.0.2",
-    "unocss": "^0.43.0",
+    "serve": "^13.0.4",
+    "unocss": "^0.43.2",
     "vite": "^2.9.13"
   },
   "engines": {

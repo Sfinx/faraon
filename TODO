@@ -30,12 +30,12 @@ misc:
 
 next:
 
-- add expose feature for slices by sfinx:// URL (permissions / credentials) / add "remote connected" option to slices / integrate search queries
+ - add expose feature for slices by sfinx:// URL (permissions / credentials) / add "remote connected" option to slices / integrate search queries
 	- add public API endpoint to sfinxd
-- implement slice semantics (json-ld)
-- implement basic AI agents:
-   - watcher
-   - harvester
-- telegram:
-	 - export slice as channel
+ - implement slice semantics (json-ld)
+ - implement basic AI agents:
+    - watcher
+    - harvester
+ - telegram:
+	- export slice as channel
 

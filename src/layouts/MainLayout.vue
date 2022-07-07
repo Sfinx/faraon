@@ -312,3 +312,14 @@ onMounted(() => {
 })
 
 </script>
+
+<style lang="scss">
+
+input, select {
+  color: $input-text-color !important;
+  -webkit-text-fill-color: $input-text-color !important;
+  -webkit-background-clip: text !important;
+  background-clip:  text !important;
+}
+
+</style>

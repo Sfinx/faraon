@@ -85,7 +85,7 @@
             @row-click="selectDocument"
             @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document, hidden: true })"
             no-data-label="No documents yet"
-            no-results-label="No documents found"
+            :no-results-label="getDocumentsResultLabel()"
           >
             <template v-slot:body-cell-type="props" >
               <q-td class="text-left">
@@ -307,6 +307,28 @@ const documentTypes = ['Note', 'File', 'Event', 'Todo']
 
 const fullSlicePath = ref(null)
 const updateFullSlicePath = async (s) => fullSlicePath.value = await sfinx.showFullSlicePath(s)
+
+const getDocumentsResultLabel = () => {
+  let l = 'No documents found for "'
+  switch (documentsFilter.category) {
+    case 'inslice':
+      l += 'In Slice'
+      break
+    case 'orphans':
+      l += 'Orphans Only'
+      break
+    case 'all':
+      l += 'All Documents'
+      break
+    case 'recursively':
+      l += 'Recursively'
+      break
+    default:
+      break
+  }
+  l += '" filter'
+  return l
+}
 
 const stripHTML = (html) => {
   let doc = new DOMParser().parseFromString(html, 'text/html')
