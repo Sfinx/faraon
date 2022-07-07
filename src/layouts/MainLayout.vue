@@ -10,10 +10,10 @@
           round
           icon="menu"
           aria-label="Menu"
-          @click="leftDrawerOpen.value = !leftDrawerOpen.value"
+          @click="leftDrawerOpen = !leftDrawerOpen"
         />
         <q-toolbar-title>Faraon</q-toolbar-title>
-        <q-btn
+        <q-btn v-if="$q.$store.loggedUser"
             flat
             dense
             icon="mdi-account-key"
@@ -33,7 +33,7 @@
 
         <q-separator color="black" inset/>
 
-        <q-item clickable @click="showLogin()" v-if="!$q.$store.loggedUser">
+        <q-item clickable @click="showLogin()" v-if="!$q.platform.is.mobile && !$q.$store.loggedUser">
           <q-item-section avatar>
             <q-icon name="mdi-login"/>
           </q-item-section>
@@ -306,6 +306,17 @@ const disconnected = msg => {
 }
 
 onMounted(() => {
+  if ($q.platform.is.mobile) {
+    $q.dialog({
+      title: 'Alert',
+      message: 'Mobile layout still in TODO list',
+      ok: {
+        color: 'secondary',
+        glossy: true
+      },
+    })
+    return
+  }
   disconnected(true)
   setWaitIcon(true, 'Connecting to sfinx://' + location.hostname + ' ...')
   sfinx.connect(connected, disconnected)
