@@ -235,20 +235,18 @@ export default {
     return this.slicePathCache[s.id] = r[0].path.join(' / ')
   },
   async buildSlicePaths(slices) {
-    let res = [], tobuild = []
+    let tobuild = []
     for (let s of slices) {
-      if (this.slicePathCache[s.id])
-        res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
-      else
+      if (!this.slicePathCache[s.id])
         tobuild.push(s.id)
     }
     if (!tobuild.length)
-      return res
+      return slices
     let r = await this.sendMsgPromise('GetSlicesPath', tobuild)
-    r.map(s => {
-      this.slicePathCache[s.id] = s.path.join(' / ')
+    r.map(s => this.slicePathCache[s.id] = s.path.join(' / '))
+    let res = []
+    for (let s of slices)
       res.push({ name: s.name, id: s.id, ...{ path: this.slicePathCache[s.id] } })
-    })
     return res
   },
   dispatch_default(ro) {
