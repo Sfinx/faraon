@@ -14,7 +14,7 @@ function createApp() {
     version: pjson.version,
     build: process.env.NODE_ENV + ' build git:' + bjson.git + ' from ' + bjson.buildStamp,
     parameters: {
-      debug: process.env.PROD ? 0 : 2,
+      debug: process.env.PROD ? 0 : 1,
       dbdebug: process.env.PROD ? 0 : 0,
       ...url2json()
     }

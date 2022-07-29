@@ -4,7 +4,7 @@
     <q-input v-model="props.data.document.data.name" outlined label-color="black" label="Note Name" ref="noteNameRef" @keydown.enter.prevent="noteDescriptionRef.focus()" class="q-mb-sm"/>
     <q-editor
       ref="noteDescriptionRef"
-      class="q-mt-lg"
+      class="q-mt-lg bg-amber-5"
       v-model="props.data.document.data.description"
       :dense="$q.screen.lt.md"
       height="49vh"

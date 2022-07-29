@@ -69,7 +69,7 @@
         </q-input>
           <q-table
             dense
-            class="sticky-header-table"
+            class="sticky-header-table bg-amber-5"
             style="min-height: 68%;"
             ref="documentsTableRef"
             :filter="documentsSearchFilter"

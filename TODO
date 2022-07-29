@@ -2,7 +2,6 @@
 bugs:
 
  ? deleting slice in depth do not refresh the tree
- - change editor color from white to grey or so
  - too wide editor window
  - when selecting slice in search - make highlight & goto in main sliceselection
 
