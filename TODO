@@ -2,7 +2,6 @@
 bugs:
 
  ? deleting slice in depth do not refresh the tree
- - too wide editor window
  - when selecting slice in search - make highlight & goto in main sliceselection
 
 current:

@@ -8,6 +8,7 @@
       v-model="props.data.document.data.description"
       :dense="$q.screen.lt.md"
       height="49vh"
+      style="max-width: 95vw"
       :toolbar="[
         [
           {
