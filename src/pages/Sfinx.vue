@@ -63,14 +63,14 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <search-slice ref="searchSliceRef" :filter="documentsFilter" :selected="documentsSelected" style="width: 97%;height: 6%" class="q-ma-sm"/>
+        <search-slice ref="searchSliceRef" :filter="documentsFilter" :selected="documentsSelected" style="height: 6%" class="q-ma-sm"/>
         <q-input ref="documentsSearchRef" v-model="documentsSearchFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
           <q-icon v-if="documentsSearchFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsSearchFilter" />
         </q-input>
           <q-table
             dense
             class="sticky-header-table"
-            style="height: 68%;"
+            style="min-height: 68%;"
             ref="documentsTableRef"
             :filter="documentsSearchFilter"
             :filter-method="documentsSearchFilterDocs"
@@ -99,7 +99,7 @@
               </q-td>
             </template>
           </q-table>
-        <q-card-actions align="between">
+        <q-card-actions class="q-mt-xs" align="between">
           <div>
             <q-btn-dropdown class="bg-secondary text-white" glossy label="Filter">
               <q-list style="min-width: 120px">
@@ -126,9 +126,9 @@
             </q-btn-dropdown>
           </div>
           <div class="q-gutter-sm">
-            <q-btn class="dense bg-red text-white" glossy label="Delete" @click="deleteTheDocument"/>
-            <q-btn class="dense bg-secondary text-white" glossy label="Edit" @click="editDocument()"/>
-            <q-btn class="dense bg-secondary text-white" glossy label="New">
+            <q-btn class="bg-red text-white" glossy label="Delete" @click="deleteTheDocument"/>
+            <q-btn class="bg-secondary text-white" glossy label="Edit" @click="editDocument()"/>
+            <q-btn class="bg-secondary text-white" glossy label="New">
               <q-menu>
                 <q-list v-for="docType in documentTypes.slice().reverse()" style="min-width: 120px">
                   <q-item clickable v-close-popup @click="newOrEditDocument(docType, false, documentsFilter)">
@@ -798,6 +798,19 @@ const deleteSlice = mode => {
   if (res.e)
     $q.$enotify(res.e)
    else {
+     for (const [idx, s] of documentsFilter.slices.entries()) {
+      if (s.id === menuSlice.id) {
+          if (documentsFilter.slices.length > 1)
+            refreshSlices()
+          else
+            refreshSlices('1')
+          if (documentsFilter.slices.length > 1)
+            documentsFilter.slices.splice(idx, 1)
+          else
+            Object.assign(documentsFilter, getdocumentsFilterDefaults())
+          return // prevent double refreshDocuments() because of documentsFilter watch
+        }
+     }
      refreshSlices()
      refreshDocuments() // refresh as documents can become orphaned
    }

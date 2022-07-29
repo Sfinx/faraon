@@ -71,10 +71,16 @@ module.exports = configure(function (/* ctx */) {
       // minify: false,
       // polyfillModulePreload: true,
       // distDir
-
+      // minify: 'terser',
       extendViteConf (viteConf) {
+        // console.dir(viteConf, { depth: null })
         viteConf.resolve.alias['@'] = viteConf.resolve.alias.src
-        // console.dir(viteConf, { depth: null });
+        // viteConf.build.terserOptions = {
+        //  compress: {
+        //     drop_console: true,
+        //     drop_debugger: true
+        //  }
+        // }
       },
       // viteVuePluginOptions: {},
       vitePlugins: [

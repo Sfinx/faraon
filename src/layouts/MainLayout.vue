@@ -180,7 +180,6 @@ async function genNewMasterKey() {
   let k = await sfinx.getMasterKey(true)
   if (k.e)
     return $q.$enotify('genNewMasterKey: ' + k.e)
-  console.log(k)
   profileDialog.masterKey = k.jwe
   profileDialog.setMasterKey = true
   $q.$notify('New Master Key is created')

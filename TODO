@@ -1,4 +1,11 @@
 
+bugs:
+
+ ? deleting slice in depth do not refresh the tree
+ - change editor color from white to grey or so
+ - too wide editor window
+ - when selecting slice in search - make highlight & goto in main sliceselection
+
 current:
 
  - create intro
@@ -21,6 +28,7 @@ misc:
  - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
  - make viewdocuments as readonly versions of newedit dialog with hidden edit button ???
  - add voice search (read the book)
+	https://developer.mozilla.org/ru/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API
  - add static colors to slices
  - write automated tests (puppeteer based)
  - connect ebook reader and save reading history in DB (pages, annotations, etc.) for PDF/EPUB/DJVU/TXT formats
