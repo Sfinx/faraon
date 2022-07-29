@@ -1,31 +1,36 @@
 
 <template>
-  <q-select
-    ref="slicesSearchRef"
-    filled
-    v-model="slicesSearch"
-    option-value="id"
-    option-label="path"
-    use-input
-    dense
-    input-debounce="0"
-    label="Slices Search"
-    :options="slicesSearchOptions"
-    @filter="slicesSearchFilterFn"
-    @update:model-value="slicesSearchUpdated"
-    behavior="menu"
-  >
-    <template v-if="slicesSearchInput.length || (slicesSearch && Object.keys(slicesSearch).length)" v-slot:append>
-      <q-icon name="clear" class="cursor-pointer" @click="resetSlicesFilter" />
-    </template>
-    <template v-slot:no-option>
-      <q-item>
-        <q-item-section class="text-grey">
-          No results
-        </q-item-section>
-      </q-item>
-    </template>
-  </q-select>
+  <div class="row">
+  <div class="col">
+    <q-select
+      ref="slicesSearchRef"
+      filled
+      v-model="slicesSearch"
+      option-value="id"
+      option-label="path"
+      use-input
+      dense
+      input-debounce="0"
+      label="Slices Search"
+      :options="slicesSearchOptions"
+      @filter="slicesSearchFilterFn"
+      @update:model-value="slicesSearchUpdated"
+      behavior="menu"
+    >
+      <template v-if="slicesSearchInput.length || (slicesSearch && Object.keys(slicesSearch).length)" v-slot:append>
+        <q-icon name="clear" class="cursor-pointer" @click="resetSlicesFilter" />
+      </template>
+      <template v-slot:no-option>
+        <q-item>
+          <q-item-section class="text-grey">
+            No results
+          </q-item-section>
+        </q-item>
+      </template>
+    </q-select>
+  </div>
+  <q-icon v-if="slicesSearch && Object.keys(slicesSearch).length" name="mdi-gesture-tap-button" size="19px" class="rounded glossy q-ml-sm q-mt-md shadow text-black" @click="props.goto()" />
+  </div>
 </template>
 
 <script setup>
@@ -51,6 +56,10 @@ const props = defineProps({
   },
   selected: {
     type: Object,
+    required: false
+  },
+  goto: {
+    type: Function,
     required: false
   }
 })

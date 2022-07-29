@@ -45,10 +45,9 @@ const emit = defineEmits(['afterplot', 'hover', 'unhover'])
 let innerLayout = { ...props.layout }
 const { emitsOptions } = getCurrentInstance()
 
-let afterplots = 0
-
 const init = (reinit) => {
   Plotly.newPlot(plotly.value, props.data, innerLayout, { ...def_options, ...options })
+  // setTimeout(() => Plotly.update(plotly.value, { ...props.data, ...{ marker: { line: { width: 10 } } } } , innerLayout, [1]), 3000)
   let emitsEvents = []
   for (let e in emitsOptions)
     emitsEvents.push(e)

@@ -63,42 +63,42 @@
         <q-toolbar class="bg-primary glossy text-white">
           <q-toolbar-title>{{ documentsTitle }}</q-toolbar-title>
         </q-toolbar>
-        <search-slice ref="searchSliceRef" :filter="documentsFilter" :selected="documentsSelected" style="height: 6%" class="q-ma-sm"/>
+        <search-slice ref="searchSliceRef" :filter="documentsFilter" :goto="goToSelected" :selected="documentsSelected" style="height: 6%" class="q-ma-sm"/>
         <q-input ref="documentsSearchRef" v-model="documentsSearchFilter.search" dense outlined label-color="black" label="Documents Search" style="height: 6%" class="q-ma-sm">
           <q-icon v-if="documentsSearchFilter.search !== ''" name="clear" class="q-mt-md cursor-pointer" @click="resetdocumentsSearchFilter" />
         </q-input>
-          <q-table
-            dense
-            class="sticky-header-table bg-amber-5"
-            style="min-height: 68%;"
-            ref="documentsTableRef"
-            :filter="documentsSearchFilter"
-            :filter-method="documentsSearchFilterDocs"
-            :rows="documentRows"
-            :columns="documentColumns"
-            selection="multiple"
-            :selected="documentsSelected"
-            @selection="onDocumentSelection"
-            :selected-rows-label="getDocumentSelectedString"
-            :rows-per-page-options="[0]"
-            row-key="_key"
-            @row-click="selectDocument"
-            @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document, hidden: true })"
-            no-data-label="No documents yet"
-            :no-results-label="getDocumentsResultLabel()"
-          >
-            <template v-slot:body-cell-type="props" >
-              <q-td class="text-left">
-                <!-- <q-icon name="xyz" class="q-mr-md"/> -->
-                <q-badge
-                  class="q-mr-md"
-                  style="height: 25px; width: 20px"
-                  color="green"
-                  :label="props.value[0].toUpperCase()"
-                ></q-badge>
-              </q-td>
-            </template>
-          </q-table>
+        <q-table
+          dense
+          class="sticky-header-table bg-amber-5"
+          style="min-height: 68%;"
+          ref="documentsTableRef"
+          :filter="documentsSearchFilter"
+          :filter-method="documentsSearchFilterDocs"
+          :rows="documentRows"
+          :columns="documentColumns"
+          selection="multiple"
+          :selected="documentsSelected"
+          @selection="onDocumentSelection"
+          :selected-rows-label="getDocumentSelectedString"
+          :rows-per-page-options="[0]"
+          row-key="_key"
+          @row-click="selectDocument"
+          @row-dblclick="(evt, document, index) => Object.assign(viewDocumentDialog, { on: true, document, hidden: true })"
+          no-data-label="No documents yet"
+          :no-results-label="getDocumentsResultLabel()"
+        >
+          <template v-slot:body-cell-type="props" >
+            <q-td class="text-left">
+              <!-- <q-icon name="xyz" class="q-mr-md"/> -->
+              <q-badge
+                class="q-mr-md"
+                style="height: 25px; width: 20px"
+                color="green"
+                :label="props.value[0].toUpperCase()"
+              ></q-badge>
+            </q-td>
+          </template>
+        </q-table>
         <q-card-actions class="q-mt-xs" align="between">
           <div>
             <q-btn-dropdown class="bg-secondary text-white" glossy label="Filter">
@@ -429,6 +429,8 @@ const resetdocumentsSearchFilter = () => {
   documentsSearchRef.value.focus()
 }
 
+const goToSelected = () => refreshSlices(documentsFilter.slices[0].id)
+
 let deleteConfirm = reactive({
   on: false,
   title: '',
@@ -748,6 +750,8 @@ const refreshSlices = (newRoot) => {
      for (let s of res.d.slices) {
        let name = s.name + sfinx.sliceSeparator + s.out_count
        slices.labels.push(name)
+       slices.textposition = 'inside'
+       slices.insidetextorientation = 'auto' // auto horizontal radial tangential
        slices.hovertext.push(s.name + (s.description ? (' (' + s.description + ')') : ''))
        slices.ids.push(s.key)
        if (!slices.parents.length) {
@@ -1009,6 +1013,12 @@ const defaultSunburstData = {
   root: {
     color: '#e8c61a'
   }
+  // ,
+  // sunburstcolorway:[
+  //   "#636efa","#EF553B","#00cc96","#ab63fa","#19d3f3",
+  //   "#e763fa", "#FECB52","#FFA15A","#FF6692","#B6E880"
+  // ],
+  // extendsunburstcolorway: true
 }
 
 onUnmounted(() => {

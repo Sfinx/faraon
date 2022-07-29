@@ -2,7 +2,8 @@
 bugs:
 
  ? deleting slice in depth do not refresh the tree
- - when selecting slice in search - make highlight & goto in main sliceselection
+ - selecting dao shows documents in undefined
+ - when selecting slice in search - make it highlighted
 
 current:
 
