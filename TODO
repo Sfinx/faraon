@@ -1,15 +1,11 @@
 
-bugs:
-
- ? deleting slice in depth do not refresh the tree
- - when selecting slice in search - make it highlighted
-
 current:
 
  - create intro
 
 misc:
 
+ - when selecting slice in search - make it highlighted
  - implement multiple documents slices editing (all must have the same slices only)
 	- ability to add new slice to all selected documents at once
  - switch note editor to https://github.com/flyween/vue3-quill

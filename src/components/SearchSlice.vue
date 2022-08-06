@@ -17,7 +17,7 @@
       @update:model-value="slicesSearchUpdated"
       behavior="menu"
     >
-      <template v-if="slicesSearchInput.length || (slicesSearch && Object.keys(slicesSearch).length)" v-slot:append>
+      <template v-if="slicesSearch && Object.keys(slicesSearch).length" v-slot:append>
         <q-icon name="clear" class="cursor-pointer" @click="resetSlicesFilter" />
       </template>
       <template v-slot:no-option>
@@ -29,7 +29,7 @@
       </template>
     </q-select>
   </div>
-  <q-icon v-if="slicesSearch && Object.keys(slicesSearch).length" name="mdi-gesture-tap-button" size="19px" class="rounded glossy q-ml-sm q-mt-md shadow text-black" @click="props.goto()" />
+  <q-icon v-if="slicesSearch && Object.keys(slicesSearch).length" v-ripple name="mdi-gesture-tap-button" size="19px" class="rounded cursor-pointer glossy q-ml-sm q-mt-md shadow text-black" @click="props.goto()" />
   </div>
 </template>
 
@@ -44,7 +44,6 @@ const $q = useQuasar()
 
 const slicesSearch = ref('')
 const slicesSearchOptions = ref([])
-const slicesSearchInput = ref('')
 
 const slicesSearchRef = ref(null)
 
@@ -64,11 +63,13 @@ const props = defineProps({
   }
 })
 
+const dao = { name: 'Dao', id: '1', path: 'Dao' }
+
 const resetSlicesFilter = () => {
   slicesSearch.value = ''
   slicesSearchRef.value.updateInputValue('')
   slicesSearchRef.value.focus()
-  Object.assign(props.filter, props.filter, { slices: [{ name: 'Dao', id: '1' }] })
+  Object.assign(props.filter, props.filter, { slices: [dao] })
 }
 
 const emit = defineEmits(['selected'])
@@ -80,14 +81,13 @@ const slicesSearchUpdated = async v => {
   } else {
     slicesSearchRef.value.updateInputValue('')
     slicesSearchRef.value.focus()
-    let slices = [{ name: 'Dao', id: '1' }]
+    let slices = [dao]
     Object.assign(props.filter, props.filter, { slices })
     slicesSearchOptions.value = await sfinx.buildSlicePaths(slices)
   }
 }
 
 const slicesSearchFilterFn = (value, update) => {
-  slicesSearchInput.value = value
   if (value == '')
     return update(async () => slicesSearchOptions.value = await sfinx.buildSlicePaths(props.filter.slices))
   if (props.selected)
@@ -102,7 +102,7 @@ const slicesSearchFilterFn = (value, update) => {
   }, value)
 }
 
-const clear = () => slicesSearchInput.value = slicesSearch.value = ''
+const clear = () => slicesSearch.value = ''
 
 onMounted(() => {
   if (props?.filter?.slices)
