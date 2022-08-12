@@ -1,7 +1,7 @@
 
 current:
 
- - create intro
+ - create intro video
 
 misc:
 
@@ -28,17 +28,25 @@ misc:
  - connect ebook reader and save reading history in DB (pages, annotations, etc.) for PDF/EPUB/DJVU/TXT formats
  - implement file content encryption upon upload
  - ability to import files from local directory (electron or app or chrome extension)
- - ability to work with several documents at once (q-window ?)
  - add mobile browser layout
 
 next:
 
  - add expose feature for slices by sfinx:// URL (permissions / credentials) / add "remote connected" option to slices / integrate search queries
 	- add public API endpoint to sfinxd
+	- slice child option, slices overlay option, full access
  - implement slice semantics (json-ld)
  - implement basic AI agents:
     - watcher
     - harvester
  - telegram:
 	- export slice as channel
+ - collaboration:
+	- shared editing documents
+ - add dropbbox/s3 as storage for files
 
+questions:
+
+ - ability to work with several documents at once (q-window ?)
+ - disable same slice document name in current level (?)
+ - appflowy/notion editor way ?

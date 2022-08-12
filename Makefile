@@ -22,9 +22,7 @@ u upgrade:
 b build: bson upgrade
 	@quasar build
 	@echo Compressing..
-	@cd dist/spa; brotli -q 11 *html *ico *png assets/*
-	@cd dist/spa; gzip -q9 *html *ico *png
-	@cd dist/spa/assets; gzip -q9 *js *css *woff *ttf
+	@cd dist/spa; brotli -q 11 *html *ico *png assets/*; gzip -q9 *html *ico *png; cd assets; gzip -q9 *js *css *woff *ttf
 
 d dev:	bson
 	@quasar dev
