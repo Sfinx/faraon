@@ -19,6 +19,7 @@ misc:
 		- streaming play of media files (videos)
  - notify options:
    - notify me before
+ - save & restore own database/files
  - create sfinx telegram webapp (https://core.telegram.org/bots/webapps)
  - make viewdocuments as readonly versions of newedit dialog with hidden edit button ???
  - add voice search (read the book)

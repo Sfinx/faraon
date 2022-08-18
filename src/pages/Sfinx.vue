@@ -506,7 +506,7 @@ const newOrEditDocument = (type, edit, doc) => {
     documentsFilter.slices = menuSlices
   let document = doc ?? { slices: menuSlices }
   let inSlices = getSlicesNames(document)
-  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.category == 'orphans' ? 'Orphan ' : '') + '\'' + document.name + '\' ' + type) : ('New ' + type)
+  newOrEditDocumentDialog.title = edit ? ('Edit ' + (documentsFilter.category == 'orphans' ? 'Orphan ' : '') + '\'' + document.data.name + '\' ' + type) : ('New ' + type)
   if (documentsFilter.category != 'orphans' || !edit)
     newOrEditDocumentDialog.title += (' in [' + inSlices + ']')
   // remove reactivity from slices so no GetDocuments will be triggered
